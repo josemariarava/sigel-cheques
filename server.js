@@ -584,6 +584,9 @@ app.post('/api/imprimir', (req, res) => {
         };
         if (esReimpresion) entrada.tipo = 'reimpresion';
         if (firmaRuta) entrada.firma = 'firmas/' + firmaRuta;
+        if (cheque.fuentes && typeof cheque.fuentes === 'object' && cheque.fuentes.campos) {
+          entrada.fuentes = cheque.fuentes;
+        }
         appendHistorial(entrada);
         setTimeout(() => hacerBackup('auto'), 0);
       }

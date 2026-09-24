@@ -147,12 +147,42 @@ const _setInterval = global.setInterval;
 global.setInterval = (fn, ms) => { const t = _setInterval(fn, ms); if (t.unref) t.unref(); return t; };
 
 try {
-  eval(codigo + '\n;global.__T = { state, setZoom, zoomFit, radioHitMm, buscarCampo, mostrarSel, guardarPosDebounced };');
+  eval(codigo + '\n;global.__T = { state, setZoom, zoomFit, radioHitMm, buscarCampo, mostrarSel, guardarPosDebounced, fuentesSnapshot, restaurarFuentes };');
 } catch(e){
   errores.push('EVAL: ' + e.stack);
 }
 
 setTimeout(() => {
+  try {
+    const T = global.__T;
+    if (T && T.fuentesSnapshot && T.restaurarFuentes && T.state.cfg){
+      console.log('===== FUENTES (snapshot/restaurar) =====');
+      const st = T.state;
+      const snap = T.fuentesSnapshot(st.cfg);
+      const k0 = Object.keys(st.cfg.posiciones)[0];
+      const origGlobal = st.cfg.fuente_mm;
+      const origCampo = st.cfg.posiciones[k0].fuente_mm;
+      st.cfg.fuente_mm = 7.4;
+      st.cfg.posiciones[k0].fuente_mm = 6.6;
+      const cambio = T.restaurarFuentes(snap);
+      const ok = cambio === true && st.cfg.fuente_mm === snap.global && st.cfg.posiciones[k0].fuente_mm === snap.campos[k0];
+      console.log('restaurar snapshot ->', ok ? 'OK' : 'FALLO');
+      if (!ok) errores.push('fuentes: restauración incorrecta');
+      const otraVez = T.restaurarFuentes(snap);
+      console.log('segunda restauración (idéntica) ->', otraVez ? 'cambio (raro)' : 'sin cambio (esperado)');
+      if (otraVez) errores.push('fuentes: segunda restauración debía ser sin cambio');
+      const nula = T.restaurarFuentes(null);
+      console.log('restaurar(null) ->', nula ? 'true (raro)' : 'false (esperado)');
+      if (nula) errores.push('fuentes: restaurar(null) debía ser false');
+      st.cfg.fuente_mm = origGlobal;
+      st.cfg.posiciones[k0].fuente_mm = origCampo;
+    } else {
+      errores.push('fuentes: funciones no expuestas en __T');
+    }
+  } catch(e){
+    errores.push('fuentes: ' + e.stack);
+  }
+
   console.log('===== ERRORES =====');
   if (!errores.length) console.log('(ninguno)');
   errores.forEach(e => console.log(e));

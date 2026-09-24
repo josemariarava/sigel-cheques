@@ -194,6 +194,53 @@ function numeroUsado(n){
   return !!(k && state.numerosUsados[k]);
 }
 
+function fuentesSnapshot(cfg){
+  const campos = {};
+  const pos = (cfg && cfg.posiciones) || {};
+  for (const k of Object.keys(pos)){
+    const f = pos[k] && pos[k].fuente_mm;
+    campos[k] = isFinite(f) ? f : 0;
+  }
+  return { global: (cfg && isFinite(cfg.fuente_mm) && cfg.fuente_mm > 0) ? cfg.fuente_mm : 4, campos };
+}
+
+function restaurarFuentes(fuentes){
+  if (!fuentes || typeof fuentes !== 'object' || !state.cfg) return false;
+  const cfg = state.cfg;
+  let cambio = false;
+  if (isFinite(fuentes.global) && fuentes.global > 0 && fuentes.global !== cfg.fuente_mm){
+    cfg.fuente_mm = fuentes.global;
+    cambio = true;
+  }
+  if (fuentes.campos && typeof fuentes.campos === 'object'){
+    cfg.posiciones = cfg.posiciones || {};
+    for (const k of Object.keys(fuentes.campos)){
+      if (!cfg.posiciones[k]) continue;
+      const v = fuentes.campos[k];
+      const val = (isFinite(v) && v >= 0) ? v : 0;
+      if (cfg.posiciones[k].fuente_mm !== val){
+        cfg.posiciones[k].fuente_mm = val;
+        cambio = true;
+      }
+    }
+  }
+  return cambio;
+}
+
+async function aplicarFuentesCheque(h, conToast){
+  if (!h || !h.fuentes || typeof h.fuentes !== 'object') return false;
+  const cambio = restaurarFuentes(h.fuentes);
+  if (cambio){
+    await guardarConfig({ fuente_mm: state.cfg.fuente_mm, posiciones: state.cfg.posiciones });
+    if ($('calFuente')) $('calFuente').value = state.cfg.fuente_mm;
+    if (typeof pintarPosGrid === 'function') pintarPosGrid();
+    if (typeof mostrarSel === 'function') mostrarSel();
+  }
+  refrescarPreview();
+  if (conToast !== false) toast('Letras del momento de imprimir restauradas ✓');
+  return true;
+}
+
 function pedirConfirmacion(texto){
   return new Promise((resolve) => {
     const m = $('modalConfirma');
@@ -245,7 +292,8 @@ $('btnImprimir').addEventListener('click', async () => {
       monto: data.montoText,
       letra: data.letraText,
       concepto: data.concepto,
-      firma: data.firma || null
+      firma: data.firma || null,
+      fuentes: fuentesSnapshot(state.cfg)
     });
     if (num) state.numerosUsados[normNum(num)] = new Date().toISOString();
     toast('Cheque enviado a la impresora ✓');
@@ -719,7 +767,7 @@ $('btnLote').addEventListener('click', async () => {
     const fechaCheque = $('lFecha').value;
     for (let i = 0; i < 3; i++){
       const c = cheques[i];
-      await imprimirCheque(c, { numero: c._numero, fechaCheque, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto, firma: c.firma || null });
+      await imprimirCheque(c, { numero: c._numero, fechaCheque, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto, firma: c.firma || null, fuentes: fuentesSnapshot(state.cfg) });
       if (normNum(c._numero)) state.numerosUsados[normNum(c._numero)] = new Date().toISOString();
       marcarSiguienteUsado(c._numero);
       if (i < 2){
@@ -831,7 +879,7 @@ function renderHistorial(){
         (anulado ? '' : '<button class="btn btnPeq" data-acc="reimprimir">Reimprimir</button> ') +
         (anulado || esReimp ? '' : '<button class="btn peligro btnPeq" data-acc="anular">Anular</button>') +
       '</td>';
-    tr.querySelector('[data-acc=cargar]').addEventListener('click', () => {
+    tr.querySelector('[data-acc=cargar]').addEventListener('click', async () => {
       $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
       $('fBenef').value = h.beneficiario || '';
       $('fMonto').value = montoNum(h.monto) ? String(montoNum(h.monto)) : '';
@@ -840,7 +888,8 @@ function renderHistorial(){
       $('fConcepto').value = h.concepto || '';
       if (h.fecha_cheque) $('fFecha').value = String(h.fecha_cheque).slice(0, 10);
       activarTab('nuevo');
-      refrescarPreview();
+      const aplico = await aplicarFuentesCheque(h);
+      if (!aplico) refrescarPreview();
     });
     const btnRei = tr.querySelector('[data-acc=reimprimir]');
     if (btnRei) btnRei.addEventListener('click', () => reimprimirCheque(h));
@@ -855,6 +904,7 @@ async function reimprimirCheque(h){
   const ok = await pedirConfirmacion('¿Reimprimir el cheque N° ' + n + ' de ' + (h.beneficiario || '—') + '? Se usará el mismo número (no se consume uno nuevo).');
   if (!ok) return;
   try {
+    await aplicarFuentesCheque(h, false);
     let firmaData = null;
     if (h.firma){
       try {
