@@ -1,5 +1,5 @@
 const $ = (id) => document.getElementById(id);
-const state = { cfg: null, sel: null, dragging: null, grab: {x:0,y:0}, bounds: [], letraManual: false, imgCache: {}, zoom: 1, fitW: null, saveTimer: null, comoImprime: false, destL: null, destA: null };
+const state = { cfg: null, sel: null, dragging: null, grab: {x:0,y:0}, bounds: [], letraManual: false, imgCache: {}, zoom: 1, fitW: null, saveTimer: null, comoImprime: false, destL: null, destA: null, numerosUsados: {} };
 
 const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 const CAMPOS = ['fecha','numero','orden','beneficiario','monto','letra','concepto','cuenta','firma'];

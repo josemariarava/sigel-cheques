@@ -307,7 +307,18 @@
   </div>
 </div>
 
-<div id="toast"></div>
+<div class="modal oculto" id="modalConfirma">
+  <div class="modalCaja">
+    <h3>Confirmar impresión</h3>
+    <p id="cfTexto"></p>
+    <div class="modalBtns">
+      <button class="btn sec" id="cfCancelar">Cancelar</button>
+      <button class="btn" id="cfAceptar">Sí, imprimir</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script src="/js/00-core.js"></script>
 <script src="/js/10-format.js"></script>

@@ -185,23 +185,73 @@ function marcarSiguienteUsado(num){
   }
 }
 
+function normNum(n){
+  return String(n == null ? '' : n).replace(/^N°\s*/i, '').trim();
+}
+
+function numeroUsado(n){
+  const k = normNum(n);
+  return !!(k && state.numerosUsados[k]);
+}
+
+function pedirConfirmacion(texto){
+  return new Promise((resolve) => {
+    const m = $('modalConfirma');
+    $('cfTexto').textContent = texto;
+    m.classList.remove('oculto');
+    function fin(ok){
+      m.classList.add('oculto');
+      $('cfAceptar').onclick = null;
+      $('cfCancelar').onclick = null;
+      resolve(ok);
+    }
+    $('cfAceptar').onclick = () => fin(true);
+    $('cfCancelar').onclick = () => fin(false);
+  });
+}
+
+function limpiarFormularioCheque(){
+  $('fBenef').value = '';
+  $('fMonto').value = '';
+  $('fLetra').value = '';
+  $('fConcepto').value = '';
+  state.letraManual = false;
+  if (padFirma) padFirma.limpiar();
+}
+
 $('btnImprimir').addEventListener('click', async () => {
   const data = datosFormulario();
   if (!data.beneficiario){ toast('Escribe el beneficiario', true); return; }
   const monto = parseFloat($('fMonto').value) || 0;
   if (monto <= 0){ toast('Escribe un monto mayor a cero', true); return; }
+  const num = $('fNumero').value.trim();
+  if (num && numeroUsado(num)){
+    const f = new Date(state.numerosUsados[normNum(num)]);
+    const fechaTxt = isNaN(f) ? '' : f.toLocaleDateString('es-PE') + ' ' + f.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'});
+    toast('El N° ' + normNum(num) + ' ya fue impreso' + (fechaTxt ? ' el ' + fechaTxt : '') + '. Usa otro número.', true);
+    return;
+  }
+  const ok = await pedirConfirmacion(
+    (num ? 'N° ' + normNum(num) + ' — ' : '') +
+    '¿Imprimir ' + data.montoText + ' a ' + data.beneficiario + '?'
+  );
+  if (!ok) return;
   $('btnImprimir').disabled = true;
   try {
     await imprimirCheque(data, {
-      numero: $('fNumero').value.trim(),
+      numero: num,
+      fechaCheque: $('fFecha').value,
       beneficiario: data.beneficiario,
       monto: data.montoText,
       letra: data.letraText,
       concepto: data.concepto
     });
+    if (num) state.numerosUsados[normNum(num)] = new Date().toISOString();
     toast('Cheque enviado a la impresora ✓');
-    marcarSiguienteUsado($('fNumero').value);
+    marcarSiguienteUsado(num);
+    limpiarFormularioCheque();
     refrescarPreview();
+    refrescarEstado();
   } catch(e){
     toast(e.message, true);
   } finally {
@@ -651,16 +701,25 @@ function esperarSgte(total, actual){
 
 $('btnLote').addEventListener('click', async () => {
   const cheques = [datosLote(0), datosLote(1), datosLote(2)];
+  const numerosVistos = {};
   for (let i = 0; i < 3; i++){
     const c = cheques[i];
     if (!c.beneficiario){ toast('Falta el beneficiario del cheque ' + (i+1), true); return; }
     if (c._monto <= 0){ toast('Falta el monto del cheque ' + (i+1), true); return; }
+    const n = normNum(c._numero);
+    if (n){
+      if (numeroUsado(n)){ toast('El N° ' + n + ' ya fue impreso antes', true); return; }
+      if (numerosVistos[n]){ toast('N° ' + n + ' repetido en el lote', true); return; }
+      numerosVistos[n] = true;
+    }
   }
   $('btnLote').disabled = true;
   try {
+    const fechaCheque = $('lFecha').value;
     for (let i = 0; i < 3; i++){
       const c = cheques[i];
-      await imprimirCheque(c, { numero: c._numero, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto });
+      await imprimirCheque(c, { numero: c._numero, fechaCheque, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto });
+      if (normNum(c._numero)) state.numerosUsados[normNum(c._numero)] = new Date().toISOString();
       marcarSiguienteUsado(c._numero);
       if (i < 2){
         const seguir = await esperarSgte(3, i + 1);
@@ -669,6 +728,7 @@ $('btnLote').addEventListener('click', async () => {
     }
     toast('Lote finalizado ✓');
     pintarLote();
+    cargarHistorial();
   } catch(e){
     toast(e.message, true);
   } finally {
@@ -699,6 +759,10 @@ function cajaEstado(titulo, valor, bien){
   return '<div class="estCaja"><b>' + titulo + '</b><span class="punto ' + (bien ? 'ok' : 'mal') + '"></span>' + valor + '</div>';
 }
 
+function escHtml(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 async function cargarHistorial(){
   try {
     const r = await fetch('/api/historial');
@@ -708,28 +772,36 @@ async function cargarHistorial(){
     $('histVacio').style.display = hist.length ? 'none' : 'block';
     for (const h of hist){
       const tr = document.createElement('tr');
-      const f = new Date(h.fecha);
+      const fc = new Date(h.fecha_cheque || h.fecha);
+      const fch = isNaN(fc) ? '' : fc.toLocaleDateString('es-PE');
+      const fi = new Date(h.fecha_impre || h.fecha);
+      const hora = isNaN(fi) ? '' : fi.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'});
       tr.innerHTML =
-        '<td>' + f.toLocaleDateString('es-PE') + ' ' + f.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
-        '<td>' + (h.numero || '') + '</td>' +
-        '<td>' + (h.beneficiario || '') + '</td>' +
-        '<td>' + (h.monto || '') + '</td>' +
-        '<td>' + (h.concepto || '') + '</td>' +
+        '<td>' + escHtml(fch) +
+          (hora ? '<div style="font-size:11px;color:#8a97a8;font-weight:400">' + hora + '</div>' : '') +
+        '</td>' +
+        '<td>' + escHtml(h.numero) + '</td>' +
+        '<td>' + escHtml(h.beneficiario) + '</td>' +
+        '<td>' + escHtml(h.monto) + '</td>' +
+        '<td>' + escHtml(h.concepto) + '</td>' +
         '<td><button class="btn sec" style="padding:5px 10px;font-size:12.5px">Cargar</button></td>';
       tr.querySelector('button').addEventListener('click', () => {
-        $('fNumero').value = h.numero ? String(h.numero).replace(/^N°\s*/, '') : state.cfg.siguiente_numero;
+        $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
         $('fBenef').value = h.beneficiario || '';
         const m = String(h.monto || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
         $('fMonto').value = m || '';
         state.letraManual = false;
         $('fLetra').value = h.letra || '';
         $('fConcepto').value = h.concepto || '';
+        if (h.fecha_cheque) $('fFecha').value = String(h.fecha_cheque).slice(0, 10);
         activarTab('nuevo');
         refrescarPreview();
       });
       body.appendChild(tr);
     }
-  } catch(e){}
+  } catch(e){
+    toast('No se pudo cargar el historial', true);
+  }
 }
 
 function pintarCamposVisibles(){
@@ -765,6 +837,7 @@ function cargarAjustes(){
   $('ajChkCta').checked = !!c.imprimirCuenta;
   $('ajMoneda').value = c.moneda || '';
   $('ajSimbolo').value = c.simboloMoneda || '';
+  $('lblMoneda').textContent = c.simboloMoneda || 'S/';
   $('ajTextoOrden').value = c.textoOrden || '';
   $('ajDelay').value = Math.round((c.loteDelayMs || 8000) / 1000);
   $('ajSiguiente').value = c.siguiente_numero;

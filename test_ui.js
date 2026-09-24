@@ -132,6 +132,9 @@ global.fetch = async (url, opts) => {
   if (u.includes('/api/historial')){
     return { ok: true, json: async () => [] };
   }
+  if (u.includes('/api/numeros')){
+    return { ok: true, json: async () => ({ '45': '2026-09-01T10:00:00.000Z' }) };
+  }
   if (u.includes('/api/imprimir')){
     return { ok: true, json: async () => ({ status: 'ok' }) };
   }

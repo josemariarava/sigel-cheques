@@ -46,6 +46,10 @@ async function iniciar(){
   refrescarPreview();
   refrescarEstado();
   setInterval(refrescarEstado, 15000);
+  try {
+    const rn = await fetch('/api/numeros');
+    if (rn.ok) state.numerosUsados = await rn.json() || {};
+  } catch (e) { state.numerosUsados = {}; }
 }
 
 window.addEventListener('unhandledrejection', (e) => {

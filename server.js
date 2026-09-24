@@ -1,16 +1,25 @@
 const express = require('express');
-const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 
 const app = express();
-app.use(cors());
+
+const ORIGENES_OK = ['http://127.0.0.1:3000', 'http://localhost:3000'];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && !ORIGENES_OK.includes(origin)) {
+    res.status(403).json({ status: 'error', message: 'Origen no permitido' });
+    return;
+  }
+  next();
+});
 app.use(express.json({ limit: '25mb' }));
 
 const PUERTO = 3000;
 const CFG_PATH = path.join(__dirname, 'config.json');
 const HIST_PATH = path.join(__dirname, 'historial.json');
+const NUM_PATH = path.join(__dirname, 'numeros_usados.json');
 const TMP_DIR = path.join(__dirname, 'tmp');
 const PS_PATH = path.join(__dirname, 'raw_print.ps1');
 
@@ -186,6 +195,30 @@ function appendHistorial(item) {
   fs.writeFileSync(HIST_PATH, JSON.stringify(hist, null, 2), 'utf8');
 }
 
+function normNum(n) {
+  return String(n == null ? '' : n).replace(/^N°\s*/i, '').trim();
+}
+
+function loadNumeros() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(NUM_PATH, 'utf8'));
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) return raw;
+  } catch (e) {}
+  const semilla = {};
+  for (const h of loadHistorial()) {
+    const n = normNum(h.numero);
+    if (n) semilla[n] = h.fecha || '';
+  }
+  try { fs.writeFileSync(NUM_PATH, JSON.stringify(semilla, null, 2), 'utf8'); } catch (e) {}
+  return semilla;
+}
+
+function registrarNumero(n, fechaISO) {
+  const nums = loadNumeros();
+  nums[n] = fechaISO;
+  fs.writeFileSync(NUM_PATH, JSON.stringify(nums, null, 2), 'utf8');
+}
+
 function rawPrint(filePath, printerName) {
   return new Promise((resolve, reject) => {
     execFile(
@@ -299,6 +332,11 @@ app.get('/api/historial', (req, res) => {
   res.json(loadHistorial());
 });
 
+app.get('/api/numeros', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(loadNumeros());
+});
+
 app.get('/api/impresora', async (req, res) => {
   res.json(await estadoImpresora());
 });
@@ -308,6 +346,22 @@ app.post('/api/imprimir', (req, res) => {
   if (!raster || !raster.data || !raster.w || !raster.h || !raster.bytesPerRow) {
     res.status(400).json({ status: 'error', message: 'Faltan datos del raster' });
     return;
+  }
+
+  const numNorm = cheque ? normNum(cheque.numero) : '';
+  if (numNorm) {
+    const usado = loadNumeros()[numNorm];
+    if (usado) {
+      const f = usado ? new Date(usado) : null;
+      const fechaTxt = f && !isNaN(f)
+        ? f.toLocaleDateString('es-PE') + ' ' + f.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+        : 'fecha desconocida';
+      res.status(409).json({
+        status: 'error',
+        message: `El N° ${numNorm} ya fue impreso el ${fechaTxt}. Usa otro número.`
+      });
+      return;
+    }
   }
 
   const cfg = loadConfig();
@@ -330,9 +384,16 @@ app.post('/api/imprimir', (req, res) => {
   encolar(() => rawPrint(archivo, cfg.impresora))
     .then((out) => {
       try { fs.unlinkSync(archivo); } catch (e) {}
-      if (cheque && cheque.beneficiario !== undefined) {
+      if (cheque && cheque.beneficiario) {
+        const ahora = new Date().toISOString();
+        const fechaCheque = cheque.fechaCheque
+          ? String(cheque.fechaCheque).slice(0, 10)
+          : ahora.slice(0, 10);
+        if (numNorm) registrarNumero(numNorm, ahora);
         appendHistorial({
-          fecha: new Date().toISOString(),
+          fecha_impre: ahora,
+          fecha_cheque: fechaCheque,
+          estado: 'impreso',
           numero: cheque.numero ?? '',
           beneficiario: cheque.beneficiario ?? '',
           monto: cheque.monto ?? '',
