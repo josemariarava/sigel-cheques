@@ -763,46 +763,119 @@ function escHtml(s){
   return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function montoNum(s){
+  const t = String(s == null ? '' : s).replace(/[^\d.,-]/g, '').replace(/,/g, '');
+  const v = parseFloat(t);
+  return isNaN(v) ? 0 : v;
+}
+
+function estadoDe(h){
+  return h.estado === 'anulado' ? 'anulado' : 'impreso';
+}
+
+function fmtMontoNum(v){
+  return v.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderHistorial(){
+  if (!state.historial) state.historial = [];
+  const hist = state.historial;
+  let imp = 0, anu = 0, total = 0;
+  for (const h of hist){
+    if (estadoDe(h) === 'anulado') anu++;
+    else { imp++; total += montoNum(h.monto); }
+  }
+  const sim = (state.cfg && state.cfg.simboloMoneda) || 'S/';
+  $('histStats').innerHTML =
+    '<div class="estCaja"><b>Impresos</b>' + imp + '</div>' +
+    '<div class="estCaja"><b>Anulados</b>' + anu + '</div>' +
+    '<div class="estCaja"><b>Monto total</b>' + sim + ' ' + fmtMontoNum(total) + '</div>';
+
+  const filtro = (($('histBuscar').value || '')).trim().toLowerCase();
+  const visibles = hist.filter(h => {
+    if (!filtro) return true;
+    const campos = [h.numero, h.beneficiario, h.monto, h.concepto, h.fecha_cheque, h.letra];
+    const f = new Date(h.fecha_cheque || h.fecha);
+    if (!isNaN(f)) campos.push(f.toLocaleDateString('es-PE'));
+    return campos.some(v => String(v == null ? '' : v).toLowerCase().includes(filtro));
+  });
+
+  const body = $('histBody');
+  body.innerHTML = '';
+  $('histVacio').style.display = visibles.length ? 'none' : 'block';
+  for (const h of visibles){
+    const anulado = estadoDe(h) === 'anulado';
+    const tr = document.createElement('tr');
+    if (anulado) tr.className = 'filaAnulada';
+    const fc = new Date(h.fecha_cheque || h.fecha);
+    const fch = isNaN(fc) ? '' : fc.toLocaleDateString('es-PE');
+    const fi = new Date(h.fecha_impre || h.fecha);
+    const hora = isNaN(fi) ? '' : fi.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'});
+    tr.innerHTML =
+      '<td>' + escHtml(fch) +
+        (hora ? '<div style="font-size:11px;color:#8a97a8;font-weight:400">' + hora + '</div>' : '') +
+      '</td>' +
+      '<td>' + escHtml(h.numero) +
+        '<div><span class="badgeEstado ' + estadoDe(h) + '">' + estadoDe(h) + '</span></div>' +
+      '</td>' +
+      '<td>' + escHtml(h.beneficiario) + '</td>' +
+      '<td>' + escHtml(h.monto) + '</td>' +
+      '<td>' + escHtml(h.concepto) + '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<button class="btn sec" data-acc="cargar" style="padding:5px 10px;font-size:12.5px">Cargar</button> ' +
+        (anulado ? '' : '<button class="btn peligro" data-acc="anular" style="padding:5px 10px;font-size:12.5px">Anular</button>') +
+      '</td>';
+    tr.querySelector('[data-acc=cargar]').addEventListener('click', () => {
+      $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
+      $('fBenef').value = h.beneficiario || '';
+      $('fMonto').value = montoNum(h.monto) ? String(montoNum(h.monto)) : '';
+      state.letraManual = false;
+      $('fLetra').value = h.letra || '';
+      $('fConcepto').value = h.concepto || '';
+      if (h.fecha_cheque) $('fFecha').value = String(h.fecha_cheque).slice(0, 10);
+      activarTab('nuevo');
+      refrescarPreview();
+    });
+    const btnAnu = tr.querySelector('[data-acc=anular]');
+    if (btnAnu) btnAnu.addEventListener('click', () => anularCheque(h));
+    body.appendChild(tr);
+  }
+}
+
+async function anularCheque(h){
+  const n = normNum(h.numero) || '(sin número)';
+  const ok = await pedirConfirmacion('¿Anular el cheque N° ' + n + ' de ' + (h.beneficiario || '—') + '? El número quedará libre para volver a imprimir.');
+  if (!ok) return;
+  try {
+    const r = await fetch('/api/historial/anular', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fecha: h.fecha_impre || h.fecha, numero: h.numero || '' })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.message || 'No se pudo anular');
+    if (j.libre && j.numero) delete state.numerosUsados[j.numero];
+    toast(j.libre && j.numero
+      ? 'Cheque N° ' + j.numero + ' anulado — el número quedó libre ✓'
+      : 'Cheque anulado ✓');
+    await cargarHistorial();
+  } catch(e){
+    toast(e.message, true);
+  }
+}
+
 async function cargarHistorial(){
   try {
     const r = await fetch('/api/historial');
-    const hist = await r.json();
-    const body = $('histBody');
-    body.innerHTML = '';
-    $('histVacio').style.display = hist.length ? 'none' : 'block';
-    for (const h of hist){
-      const tr = document.createElement('tr');
-      const fc = new Date(h.fecha_cheque || h.fecha);
-      const fch = isNaN(fc) ? '' : fc.toLocaleDateString('es-PE');
-      const fi = new Date(h.fecha_impre || h.fecha);
-      const hora = isNaN(fi) ? '' : fi.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'});
-      tr.innerHTML =
-        '<td>' + escHtml(fch) +
-          (hora ? '<div style="font-size:11px;color:#8a97a8;font-weight:400">' + hora + '</div>' : '') +
-        '</td>' +
-        '<td>' + escHtml(h.numero) + '</td>' +
-        '<td>' + escHtml(h.beneficiario) + '</td>' +
-        '<td>' + escHtml(h.monto) + '</td>' +
-        '<td>' + escHtml(h.concepto) + '</td>' +
-        '<td><button class="btn sec" style="padding:5px 10px;font-size:12.5px">Cargar</button></td>';
-      tr.querySelector('button').addEventListener('click', () => {
-        $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
-        $('fBenef').value = h.beneficiario || '';
-        const m = String(h.monto || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
-        $('fMonto').value = m || '';
-        state.letraManual = false;
-        $('fLetra').value = h.letra || '';
-        $('fConcepto').value = h.concepto || '';
-        if (h.fecha_cheque) $('fFecha').value = String(h.fecha_cheque).slice(0, 10);
-        activarTab('nuevo');
-        refrescarPreview();
-      });
-      body.appendChild(tr);
-    }
+    state.historial = await r.json();
   } catch(e){
     toast('No se pudo cargar el historial', true);
+    return;
   }
+  renderHistorial();
 }
+
+$('histBuscar').addEventListener('input', renderHistorial);
 
 function pintarCamposVisibles(){
   const cont = $('camposVisibles');

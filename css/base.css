@@ -56,6 +56,12 @@
   .estGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;font-size:13.5px}
   .estCaja{background:#f6f9fc;border:1px solid var(--borde);border-radius:7px;padding:9px 12px}
   .estCaja b{display:block;font-size:11.5px;color:#68788c;text-transform:uppercase;letter-spacing:.4px}
+  .histStats{display:flex;gap:10px;flex-wrap:wrap}
+  .histStats .estCaja{flex:1;min-width:160px}
+  .badgeEstado{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:9px;margin-top:4px}
+  .badgeEstado.impreso{background:#e2f4e8;color:#1a8f3c}
+  .badgeEstado.anulado{background:#fde4e4;color:#c62828}
+  tr.filaAnulada td{color:#9aa7b7}
   .punto{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
   .punto.ok{background:var(--ok)} .punto.mal{background:var(--mal)}
   #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#22303f;color:#fff;

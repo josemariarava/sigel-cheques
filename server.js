@@ -332,6 +332,41 @@ app.get('/api/historial', (req, res) => {
   res.json(loadHistorial());
 });
 
+app.post('/api/historial/anular', (req, res) => {
+  const { fecha, numero } = req.body || {};
+  if (!fecha) {
+    res.status(400).json({ status: 'error', message: 'Falta fecha del cheque' });
+    return;
+  }
+  const hist = loadHistorial();
+  const n = normNum(numero);
+  const idx = hist.findIndex(h => String(h.fecha_impre || h.fecha) === String(fecha) && normNum(h.numero) === n);
+  if (idx < 0) {
+    res.status(404).json({ status: 'error', message: 'Cheque no encontrado en el historial' });
+    return;
+  }
+  if (hist[idx].estado === 'anulado') {
+    res.json({ status: 'ok', yaAnulado: true, libre: false, numero: n });
+    return;
+  }
+  hist[idx].estado = 'anulado';
+  hist[idx].fecha_anula = new Date().toISOString();
+  fs.writeFileSync(HIST_PATH, JSON.stringify(hist, null, 2), 'utf8');
+  let libre = false;
+  if (n) {
+    const usadoEnOtro = hist.some((h, i) => i !== idx && normNum(h.numero) === n && (h.estado || 'impreso') !== 'anulado');
+    if (!usadoEnOtro) {
+      const nums = loadNumeros();
+      if (nums[n] !== undefined) {
+        delete nums[n];
+        fs.writeFileSync(NUM_PATH, JSON.stringify(nums, null, 2), 'utf8');
+        libre = true;
+      }
+    }
+  }
+  res.json({ status: 'ok', libre, numero: n });
+});
+
 app.get('/api/numeros', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json(loadNumeros());
