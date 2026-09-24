@@ -1,0 +1,90 @@
+{
+  "impresora": "EPSON TM-H6000VI Slip",
+  "dpi": 160,
+  "cheque": {
+    "largo_mm": 72,
+    "ancho_mm": 86
+  },
+  "orient": 90,
+  "offsetX_mm": 0,
+  "offsetY_mm": 0,
+  "fuente_mm": 2.2,
+  "fuenteTipo": "Comic Sans MS",
+  "firma_ancho_mm": 36,
+  "firma_alto_mm": 14,
+  "moneda": "SOLES",
+  "simboloMoneda": "S/",
+  "loteDelayMs": 8000,
+  "siguiente_numero": 42,
+  "imprimirNumero": true,
+  "imprimirCuenta": true,
+  "cuenta": {
+    "titular": "REGION CAJAMARCA-EDUCACION UGEL",
+    "banco": "Banco de la Nacion",
+    "numero": "048-764A-0761105701",
+    "ciudad": "CAJAMARCA"
+  },
+  "textoOrden": "PAGUESE A LA ORDEN DE:",
+  "fechaFormato": "numeros",
+  "camposVisibles": {
+    "fecha": true,
+    "numero": false,
+    "orden": false,
+    "beneficiario": true,
+    "monto": true,
+    "letra": true,
+    "concepto": true,
+    "cuenta": false,
+    "firma": false
+  },
+  "margenDerecha_mm": 0,
+  "montoAlineacion": "izq",
+  "anchoImpresion_mm": 80,
+  "posiciones": {
+    "fecha": {
+      "x": 25.5,
+      "y": 3.5,
+      "fuente_mm": 0
+    },
+    "numero": {
+      "x": 4.5,
+      "y": 1.5,
+      "fuente_mm": 0
+    },
+    "orden": {
+      "x": 3.5,
+      "y": 11.5,
+      "fuente_mm": 0
+    },
+    "beneficiario": {
+      "x": 13,
+      "y": 19.5,
+      "fuente_mm": 1.7
+    },
+    "monto": {
+      "x": 55,
+      "y": 3.5,
+      "fuente_mm": 0
+    },
+    "letra": {
+      "x": 17,
+      "y": 28.5,
+      "fuente_mm": 0
+    },
+    "concepto": {
+      "x": 1,
+      "y": 19.5,
+      "fuente_mm": 2.2
+    },
+    "cuenta": {
+      "x": 13.5,
+      "y": 6,
+      "fuente_mm": 0
+    },
+    "firma": {
+      "x": 34,
+      "y": 58,
+      "fuente_mm": 0
+    }
+  }
+}

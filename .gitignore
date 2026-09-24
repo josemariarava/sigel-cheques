@@ -1,0 +1,12 @@
+node_modules/
+tmp/
+*.bak
+*.bin
+com3_test_*/
+*.log
+.DS_Store
+Thumbs.db
+PRN
+EPSON TM-H6000VI Slip
+EPSONTM-H6000VI Slip
+historial.json

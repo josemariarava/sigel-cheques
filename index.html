@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impresión de Cheques — Epson TM-H6000VI</title>
+<style>
+  :root{
+    --azul:#0b5cad; --azulOsc:#084789; --fondo:#f2f5f9; --borde:#d7dee8;
+    --texto:#1c2733; --ok:#1a8f3c; --mal:#c62828; --warn:#e08b00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fondo);color:var(--texto)}
+  header{background:var(--azul);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  #estado{font-size:13px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px}
+  nav{display:flex;background:#fff;border-bottom:1px solid var(--borde);padding:0 12px;gap:2px;overflow-x:auto}
+  nav button{border:none;background:none;padding:13px 18px;font-size:14.5px;cursor:pointer;color:#556;border-bottom:3px solid transparent;white-space:nowrap}
+  nav button.activo{color:var(--azul);border-bottom-color:var(--azul);font-weight:600}
+  main{padding:18px;max-width:1280px;margin:0 auto}
+  .tab{display:none}
+  .tab.activo{display:block}
+  .panel{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:18px}
+  .dosCol{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
+  @media(max-width:900px){.dosCol{grid-template-columns:1fr}}
+  label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 4px;color:#40506a}
+  input[type=text],input[type=number],input[type=date],select,textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--borde);border-radius:6px;font-size:14.5px;background:#fbfcfe}
+  input:focus,select:focus,textarea:focus{outline:2px solid #9ec5f0;border-color:var(--azul)}
+  .fila2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:7px;
+    padding:11px 18px;font-size:15px;cursor:pointer;background:var(--azul);color:#fff;font-weight:600}
+  .btn:hover{background:var(--azulOsc)}
+  .btn.sec{background:#e8eef5;color:#28405c}
+  .btn.sec:hover{background:#d8e2ee}
+  .btn.peligro{background:var(--mal)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btnAncho{width:100%;margin-top:16px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{font-size:12px;background:#eef3f9;border:1px solid var(--borde);border-radius:14px;padding:3px 10px}
+  #previewWrap{position:relative}
+  #previewScroll{overflow:auto;max-height:62vh;border:1px solid var(--borde);border-radius:6px;background:#fff}
+  #preview{display:block;cursor:grab;touch-action:none;background:#fff;transform-origin:0 0}
+  #preview.arrastrando{cursor:grabbing}
+  #zoomBar{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+  #zoomBar .btn{padding:4px 10px;font-size:12.5px}
+  .ayuda{font-size:12.5px;color:#68788c;margin-top:8px;line-height:1.45}
+  #selInfo{font-size:12.5px;margin-top:6px;color:var(--azul);font-weight:600;min-height:18px}
+  canvas.pad{width:100%;background:#fff;border:1px solid var(--borde);border-radius:6px;touch-action:none;cursor:crosshair;display:block}
+  .padTools{display:flex;gap:8px;margin-top:8px}
+  .padTools .btn{padding:7px 12px;font-size:13px}
+  h2{font-size:16.5px;margin:0 0 12px}
+  h3{font-size:14.5px;margin:18px 0 6px;color:#28405c}
+  .subPanel{border-top:1px solid var(--borde);margin-top:16px;padding-top:14px}
+  .loteGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:950px){.loteGrid{grid-template-columns:1fr}}
+  .loteCard{border:1px solid var(--borde);border-radius:9px;padding:12px;background:#fbfcfe}
+  .loteCard h4{margin:0 0 4px;font-size:13.5px;color:var(--azul)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--borde);text-align:left}
+  th{background:#eef3f9;font-size:12.5px;color:#40506a}
+  .estGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;font-size:13.5px}
+  .estCaja{background:#f6f9fc;border:1px solid var(--borde);border-radius:7px;padding:9px 12px}
+  .estCaja b{display:block;font-size:11.5px;color:#68788c;text-transform:uppercase;letter-spacing:.4px}
+  .punto{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+  .punto.ok{background:var(--ok)} .punto.mal{background:var(--mal)}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#22303f;color:#fff;
+    padding:11px 22px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;z-index:50;max-width:90vw;text-align:center}
+  #toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.error{background:var(--mal)}
+  .modal{position:fixed;inset:0;background:rgba(10,20,35,.55);display:flex;align-items:center;justify-content:center;z-index:40}
+  .modal.oculto{display:none}
+  .modalCaja{background:#fff;border-radius:12px;padding:24px;width:min(430px,92vw);text-align:center}
+  .modalCaja h3{margin:0 0 8px;font-size:17px;color:var(--texto)}
+  .modalCaja p{font-size:14px;color:#556;margin:4px 0 14px}
+  .barra{height:8px;background:#e3e9f0;border-radius:4px;overflow:hidden;margin-bottom:16px}
+  .barra span{display:block;height:100%;background:var(--azul);width:0%}
+  .modalBtns{display:flex;gap:10px;justify-content:center}
+  .checkline{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px}
+  .checkline input{width:auto}
+  .numAuto{background:#eef3f9 !important;font-weight:700;color:var(--azul)}
+  .separador{height:1px;background:var(--borde);margin:16px 0}
+  .nivel{display:flex;gap:8px;align-items:center}
+  .nivel button{width:34px;padding:8px 0;font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏦 Impresión de Cheques — Epson TM-H6000VI <span style="font-weight:400;opacity:.85">(Slip)</span></h1>
+  <div id="estado"><span class="punto mal"></span>consultando…</div>
+</header>
+
+<nav>
+  <button class="activo" data-tab="nuevo">Nuevo cheque</button>
+  <button data-tab="lote">Lote ×3</button>
+  <button data-tab="calib">Calibración</button>
+  <button data-tab="hist">Historial</button>
+  <button data-tab="ajustes">Ajustes</button>
+</nav>
+
+<main>
+
+<section id="tab-nuevo" class="tab activo">
+  <div class="dosCol">
+    <div class="panel">
+      <h2>Datos del cheque</h2>
+      <div class="fila2">
+        <div>
+          <label>N° de cheque</label>
+          <input type="text" id="fNumero" class="numAuto">
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="fFecha">
+        </div>
+      </div>
+      <div id="fFechaLarga" class="chips"><span class="chip"></span></div>
+
+      <label>Beneficiario</label>
+      <input type="text" id="fBenef" placeholder="Persona o empresa a pagar">
+
+      <label>Monto (<span id="lblMoneda">S/</span>)</label>
+      <input type="number" id="fMonto" step="0.01" min="0" placeholder="0.00">
+
+      <label>Monto en letras (automático, editable)</label>
+      <input type="text" id="fLetra" placeholder="se completa solo al escribir el monto">
+
+      <label>Concepto / memo</label>
+      <input type="text" id="fConcepto" placeholder="Pago por…">
+
+      <label>Firma (dibuja con el mouse o sube una imagen)</label>
+      <canvas class="pad" id="padFirma" width="720" height="260"></canvas>
+      <div class="padTools">
+        <button class="btn sec" id="btnFirmaImg">Subir imagen</button>
+        <button class="btn sec" id="btnFirmaLimpiar">Limpiar</button>
+        <input type="file" id="firmaFile" accept="image/*" hidden>
+      </div>
+
+      <button class="btn btnAncho" id="btnImprimir">🖨️ Imprimir cheque</button>
+      <div class="ayuda">Inserta el cheque en la ranura frontal antes de imprimir. Si es la primera vez en el día, usa la pestaña <b>Calibración</b> para una prueba de grilla.</div>
+    </div>
+
+    <div class="panel" id="previewWrap">
+      <h2>Vista previa <span style="font-weight:400;font-size:12.5px;color:#68788c">(tal como se sostiene el cheque)</span></h2>
+      <div id="previewScroll">
+        <canvas id="preview" width="680" height="280"></canvas>
+      </div>
+      <div id="zoomBar">
+        <button type="button" class="btn sec" id="btnZoomOut" title="Alejar">−</button>
+        <button type="button" class="btn sec" id="btnZoomIn" title="Acercar">+</button>
+        <button type="button" class="btn sec" id="btnZoomFit">Ajustar</button>
+        <span id="zoomPct" style="font-size:12.5px;color:#68788c;min-width:44px;display:inline-block">100%</span>
+        <span style="flex:1"></span>
+        <span class="checkline" style="margin:0;gap:6px"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" style="margin:0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
+        <span class="checkline" style="margin:0;gap:6px"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" style="margin:0">Guías</label></span>
+      </div>
+      <div id="selInfo"></div>
+      <div id="pvInfo" class="ayuda"></div>
+      <div class="ayuda">Rueda = zoom · flechas ↑↓←→ = mover campo (1 mm; Shift = 5 mm; Alt = 0.5 mm) · <b>+</b>/<b>−</b> = tamaño de letra del campo · doble clic = acercar al campo · arrastre o X/Y en Calibración · se guarda solo.</div>
+      <div class="subPanel">
+        <h3>Posiciones de campos (mm)</h3>
+        <div style="margin-bottom:10px">
+          <button type="button" class="btn sec" id="btnAjustarLinea" style="width:100%">✂ Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
+          <div class="ayuda" style="margin-top:6px">Selecciona un campo en la vista previa o en la grilla, luego pulsa el botón. O usa <b>+</b> / <b>−</b> con el campo seleccionado para achicar/agrandar a mano (Shift = ±0.5 mm).</div>
+        </div>
+        <div id="posGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-lote" class="tab">
+  <div class="panel">
+    <h2>Lote de 3 cheques (uno tras otro en la ranura)</h2>
+    <div class="fila2" style="max-width:420px">
+      <div>
+        <label>Fecha común del lote</label>
+        <input type="date" id="lFecha">
+      </div>
+      <div>
+        <label>Primer N°</label>
+        <input type="text" id="lPrimero" class="numAuto" readonly>
+      </div>
+    </div>
+
+    <div class="loteGrid" id="loteGrid" style="margin-top:14px"></div>
+
+    <label style="margin-top:16px">Firma del lote (común a los 3)</label>
+    <canvas class="pad" id="padLote" width="720" height="200" style="max-width:560px"></canvas>
+    <div class="padTools">
+      <button class="btn sec" id="btnLoteImg">Subir imagen</button>
+      <button class="btn sec" id="btnLoteLimpiar">Limpiar</button>
+      <input type="file" id="loteFile" accept="image/*" hidden>
+    </div>
+
+    <button class="btn btnAncho" id="btnLote" style="max-width:420px">🖨️ Imprimir los 3 cheques</button>
+    <div class="ayuda">Se imprime el 1.º, luego te pedirá retirarlo y colocar el siguiente (espera configurable en Ajustes).</div>
+  </div>
+</section>
+
+<section id="tab-calib" class="tab">
+  <div class="dosCol">
+    <div class="panel">
+      <h2>Estado de la impresora</h2>
+      <div class="estGrid" id="estGrid"></div>
+
+      <div class="subPanel">
+        <h2>Pruebas de impresión</h2>
+        <button class="btn" id="btnGrilla" style="width:100%;margin-bottom:10px">🧱 Imprimir grilla (10 mm + marcas de esquina 2/5/10)</button>
+        <button class="btn sec" id="btnAvance" style="width:100%;margin-bottom:10px">📏 Test avance — barra a todo el largo</button>
+        <button class="btn sec" id="btnPrueba" style="width:100%">🧪 Imprimir cheque de prueba</button>
+        <div class="ayuda">La grilla muestra cruces cada 10 mm. El <b>test avance</b> pinta una banda negra en el borde de entrada y otra en el <b>FIN</b> del largo configurado: si el FIN no cae en el borde real del papel, ajusta Largo/Ancho (el eje de avance) hasta que coincida.</div>
+      </div>
+
+      <div class="subPanel">
+        <h2>Orientación y desplazamiento</h2>
+        <label>Orientación de impresión</label>
+        <select id="calOrient">
+          <option value="0">0° — borde largo primero</option>
+          <option value="90">90° — borde corto primero (típico)</option>
+          <option value="180">180° — al revés</option>
+          <option value="270">270° — al revés + 90°</option>
+        </select>
+        <div class="fila2">
+          <div>
+            <label>Offset X (mm)</label>
+            <div class="nivel">
+              <button class="btn sec" data-off="X" data-d="-0.5">−</button>
+              <input type="number" id="calOffX" step="0.5" value="0">
+              <button class="btn sec" data-off="X" data-d="0.5">+</button>
+            </div>
+          </div>
+          <div>
+            <label>Offset Y (mm)</label>
+            <div class="nivel">
+              <button class="btn sec" data-off="Y" data-d="-0.5">−</button>
+              <input type="number" id="calOffY" step="0.5" value="0">
+              <button class="btn sec" data-off="Y" data-d="0.5">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="ayuda">X mueve el contenido a lo largo del carril; Y lo mueve en la dirección de avance. Si el texto sale girado, cambia la orientación.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Tamaño del cheque y fuente</h2>
+      <div class="fila2">
+        <div>
+          <label id="lblLargo">Largo (mm) — eje de avance con orient. actual</label>
+          <input type="number" id="calLargo" step="1" min="1">
+        </div>
+        <div>
+          <label id="lblAncho">Ancho (mm) — ancho de la cabeza</label>
+          <input type="number" id="calAncho" step="1" min="1">
+        </div>
+      </div>
+      <div class="ayuda" id="ayudaAvance"></div>
+      <label>Tamaño de letra (mm)</label>
+      <input type="number" id="calFuente" step="0.2" min="2" max="8">
+      <label>Tipo de letra</label>
+      <select id="calFuenteTipo">
+        <option value="Courier New">Courier New (actual)</option>
+        <option value="Consolas">Consolas</option>
+        <option value="Lucida Console">Lucida Console</option>
+        <option value="Courier">Courier</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Arial">Arial</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Tahoma">Tahoma</option>
+        <option value="Calibri">Calibri</option>
+        <option value="Segoe UI">Segoe UI</option>
+        <option value="Comic Sans MS">Comic Sans MS</option>
+      </select>
+      <div class="ayuda">La letra se dibuja en el navegador y se manda a la impresora como imagen — el tipo elegido se ve igual en la vista previa y en el papel. Las monoespaciadas (Courier, Consolas) alinean mejor los montos.</div>
+      <div class="fila2">
+        <div>
+          <label>Holgura derecha (mm) — margen del texto</label>
+          <input type="number" id="calMargen" step="0.5" min="0" max="10">
+        </div>
+        <div>
+          <label>Ancho imprimible (mm) — cabeza Epson</label>
+          <input type="number" id="calAnchoImp" step="1" min="40" max="120">
+        </div>
+      </div>
+      <label>Alineación del monto</label>
+      <select id="calMontoAlinea">
+        <option value="izq">Izquierda — ancla a la izquierda</option>
+        <option value="centro">Centro — ancla al centro</option>
+        <option value="der">Derecha — ancla al borde derecho del texto</option>
+      </select>
+      <div class="ayuda">Cambios aquí afectan la vista previa y la impresión. Se guardan automáticamente. La línea punteada naranja en la vista = ancho que puede imprimir la cabeza (~80 mm).</div>
+      <div class="subPanel">
+        <h2>Firma — tamaño impreso</h2>
+        <div class="fila2">
+          <div><label>Ancho (mm)</label><input type="number" id="calFirmaW" step="1"></div>
+          <div><label>Alto (mm)</label><input type="number" id="calFirmaH" step="1"></div>
+        </div>
+      </div>
+      <div class="subPanel">
+        <h2>Configuración de impresión</h2>
+        <label>Nombre de la impresora</label>
+        <input type="text" id="calImpresora">
+        <div class="ayuda">Nombre exacto en Windows. El puerto se configuró a USB (ESDPRT001).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-hist" class="tab">
+  <div class="panel">
+    <h2>Historial de cheques impresos</h2>
+    <table>
+      <thead><tr><th>Fecha</th><th>N°</th><th>Beneficiario</th><th>Monto</th><th>Concepto</th><th></th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table>
+    <div class="ayuda" id="histVacio">Sin cheques impresos todavía.</div>
+  </div>
+</section>
+
+<section id="tab-ajustes" class="tab">
+  <div class="panel" style="max-width:760px">
+    <h2>Datos de la cuenta y del titular</h2>
+    <div class="fila2">
+      <div><label>Titular / cuenta</label><input type="text" id="ajTitular"></div>
+      <div><label>Banco</label><input type="text" id="ajBanco"></div>
+    </div>
+    <div class="fila2">
+      <div><label>N° de cuenta (se imprime si está activo)</label><input type="text" id="ajCuenta"></div>
+      <div><label>Ciudad (para la línea de fecha)</label><input type="text" id="ajCiudad"></div>
+    </div>
+
+    <div class="checkline"><input type="checkbox" id="ajChkNum"><label for="ajChkNum" style="margin:0">Imprimir N° de cheque en el cuerpo</label></div>
+    <div class="checkline"><input type="checkbox" id="ajChkCta"><label for="ajChkCta" style="margin:0">Imprimir N° de cuenta en el cuerpo</label></div>
+
+    <div class="separador"></div>
+    <h2>Fecha en el cheque</h2>
+    <label>Formato</label>
+    <select id="ajFechaFmt">
+      <option value="numeros">Numérica — CAJAMARCA 15 09 26</option>
+      <option value="larga">Larga — CAJAMARCA, 15 DE SETIEMBRE DE 2026</option>
+    </select>
+
+    <div class="separador"></div>
+    <h2>Campos que van en el cheque</h2>
+    <div class="ayuda" style="margin-top:0">Marca solo los que quieras imprimir. Los desmarcados no se ven en la vista previa ni salen en la impresora.</div>
+    <div id="camposVisibles" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px"></div>
+
+    <div class="separador"></div>
+    <h2>Moneda y textos</h2>
+    <div class="fila2">
+      <div><label>Moneda (letras)</label><input type="text" id="ajMoneda"></div>
+      <div><label>Símbolo (número)</label><input type="text" id="ajSimbolo"></div>
+    </div>
+    <label>Texto "orden de pago"</label>
+    <input type="text" id="ajTextoOrden">
+
+    <div class="separador"></div>
+    <h2>Lote</h2>
+    <label>Espera entre cheques del lote (segundos)</label>
+    <input type="number" id="ajDelay" step="1" min="2">
+
+    <div class="separador"></div>
+    <h2>Numeración</h2>
+    <label>Siguiente número de cheque</label>
+    <input type="number" id="ajSiguiente" step="1" min="1">
+
+    <button class="btn btnAncho" id="btnGuardaAjustes">💾 Guardar ajustes</button>
+  </div>
+</section>
+
+</main>
+
+<div class="modal oculto" id="modalLote">
+  <div class="modalCaja">
+    <h3 id="mdTitulo">Cheque impreso</h3>
+    <p id="mdTexto"></p>
+    <div class="barra"><span id="mdBarra"></span></div>
+    <div class="modalBtns">
+      <button class="btn" id="mdSeguir">Listo, imprimir el siguiente</button>
+      <button class="btn peligro" id="mdCancelar">Cancelar lote</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { cfg: null, sel: null, dragging: null, grab: {x:0,y:0}, bounds: [], letraManual: false, imgCache: {}, zoom: 1, fitW: null, saveTimer: null, comoImprime: false, destL: null, destA: null };
+
+const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const CAMPOS = ['fecha','numero','orden','beneficiario','monto','letra','concepto','cuenta','firma'];
+const NOMBRES_CAMPO = {fecha:'Fecha',numero:'N°',orden:'Orden',beneficiario:'Beneficiario',monto:'Monto',letra:'En letras',concepto:'Concepto',cuenta:'Cuenta',firma:'Firma'};
+
+function toast(msg, esError){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!esError);
+  t.classList.add('visible');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('visible'), esError ? 6000 : 3200);
+}
+
+function numeroALetras(num){
+  const un = ['','UN','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE'];
+  const diez = ['DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISEIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+  const veinte = ['','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const cien = ['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+  function entero(n){
+    if (n === 0) return '';
+    if (n === 100) return 'CIEN';
+    let r = '';
+    const c = Math.floor(n/100), d = Math.floor((n%100)/10), u = n%10;
+    if (c) r += cien[c] + ' ';
+    if (d === 1) r += u ? diez[u] : 'DIEZ';
+    else if (d === 2 && u) r += 'VEINTI' + (u === 1 ? 'UN' : un[u]);
+    else if (d) { r += veinte[d]; if (u) r += ' Y ' + un[u]; }
+    else if (u) r += un[u];
+    return r.trim();
+  }
+  function miles(n){
+    if (n < 1000) return entero(n);
+    const m = Math.floor(n/1000), rest = n%1000;
+    let r = (m === 1 ? 'MIL' : entero(m) + ' MIL');
+    if (rest) r += ' ' + entero(rest);
+    return r;
+  }
+  function millones(n){
+    if (n < 1000000) return miles(n);
+    const m = Math.floor(n/1000000), rest = n%1000000;
+    let r = (m === 1 ? 'UN MILLON' : entero(m) + ' MILLONES');
+    if (rest) r += ' ' + miles(rest);
+    return r;
+  }
+  const v = Math.round((Number(num) || 0) * 100);
+  const ent = Math.floor(v/100), dec = v % 100;
+  const mon = (state.cfg && state.cfg.moneda) ? state.cfg.moneda : 'SOLES';
+  const parte = millones(ent);
+  return (parte || 'CERO') + ' CON ' + String(dec).padStart(2,'0') + '/100 ' + mon;
+}
+
+function fechaLarga(iso, ciudad, formato){
+  if (!iso) return '';
+  const p = iso.split('-');
+  if (p.length !== 3) return '';
+  const c = (ciudad || '').trim().toUpperCase();
+  if (formato === 'larga'){
+    return (c ? c + ', ' : '') + Number(p[2]) + ' DE ' + MESES[Number(p[1]) - 1] + ' DE ' + p[0];
+  }
+  const dd = String(Number(p[2])).padStart(2, '0');
+  const mm = String(Number(p[1])).padStart(2, '0');
+  const yy = p[0].slice(-2);
+  return (c ? c + ' ' : '') + dd + ' ' + mm + ' ' + yy;
+}
+
+function campoVisible(cfg, key){
+  const v = cfg && cfg.camposVisibles;
+  if (!v || typeof v !== 'object') return true;
+  if (!(key in v)) return true;
+  return v[key] !== false;
+}
+
+function fuenteCampoMM(cfg, pos){
+  const g = isFinite(cfg.fuente_mm) && cfg.fuente_mm > 0 ? cfg.fuente_mm : 4;
+  const f = pos && isFinite(pos.fuente_mm) ? pos.fuente_mm : 0;
+  return (f >= 1 && f <= 8) ? f : g;
+}
+
+function anchoDispoMM(cfg, pos, key){
+  const L = cfg.cheque.largo_mm;
+  const margen = isFinite(cfg.margenDerecha_mm) ? cfg.margenDerecha_mm : 0;
+  const alin = (key === 'monto' && cfg.montoAlineacion) ? cfg.montoAlineacion : 'izq';
+  if (alin === 'der') return Math.max(0, pos.x - margen);
+  if (alin === 'centro') return Math.max(0, Math.min(pos.x, L - pos.x) * 2 - margen);
+  return Math.max(0, L - pos.x - margen);
+}
+
+function fmtMonto(n){
+  return (Number(n) || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+async function cargarImg(url){
+  if (!url) return null;
+  if (state.imgCache[url]) return state.imgCache[url];
+  const img = new Image();
+  img.src = url;
+  try { await img.decode(); } catch(e) { return null; }
+  state.imgCache[url] = img;
+  return img;
+}
+
+function envolver(ctx, texto, anchoPx, maxLineas){
+  texto = String(texto || '');
+  if (!texto) return [];
+  if (maxLineas <= 1) return [texto];
+  const palabras = texto.split(/\s+/);
+  const lineas = [];
+  let act = '';
+  for (const p of palabras){
+    const cand = act ? act + ' ' + p : p;
+    if (ctx.measureText(cand).width <= anchoPx) act = cand;
+    else { if (act) lineas.push(act); act = p; }
+  }
+  if (act) lineas.push(act);
+  if (lineas.length > maxLineas){
+    const kept = lineas.slice(0, maxLineas - 1);
+    kept.push(lineas.slice(maxLineas - 1).join(' '));
+    return kept;
+  }
+  return lineas;
+}
+
+function naturalADest(cfg, x, y){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  const o = ((Number(cfg.orient) % 360) + 360) % 360;
+  let dx = x, dy = y;
+  if (o === 90){ dx = A - y; dy = x; }
+  else if (o === 180){ dx = L - x; dy = A - y; }
+  else if (o === 270){ dx = y; dy = L - x; }
+  dx += cfg.offsetX_mm || 0;
+  dy += cfg.offsetY_mm || 0;
+  return { x: dx, y: dy };
+}
+
+function destANatural(cfg, x, y){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  const o = ((Number(cfg.orient) % 360) + 360) % 360;
+  let dx = x - (cfg.offsetX_mm || 0);
+  let dy = y - (cfg.offsetY_mm || 0);
+  if (o === 90) return { x: dy, y: A - dx };
+  if (o === 180) return { x: L - dx, y: A - dy };
+  if (o === 270) return { x: L - dy, y: dx };
+  return { x: dx, y: dy };
+}
+
+function dimsDestino(cfg){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  const o = ((Number(cfg.orient) % 360) + 360) % 360;
+  const baseW = (o === 0 || o === 180) ? L : A;
+  const baseH = (o === 0 || o === 180) ? A : L;
+  return {
+    destL: baseW + Math.max(0, cfg.offsetX_mm || 0),
+    destA: baseH + Math.max(0, cfg.offsetY_mm || 0)
+  };
+}
+
+function camposDe(cfg, data){
+  const todos = [
+    {key:'fecha', txt: data.fechaText, lineas: 2},
+    {key:'numero', txt: (cfg.imprimirNumero && data.numeroText) ? data.numeroText : null},
+    {key:'orden', txt: cfg.textoOrden || ''},
+    {key:'beneficiario', txt: data.beneficiario, lineas: 2},
+    {key:'monto', txt: data.montoText, bold: true},
+    {key:'letra', txt: data.letraText, lineas: 2},
+    {key:'concepto', txt: data.concepto, lineas: 1},
+    {key:'cuenta', txt: data.cuentaText, lineas: 1},
+    {key:'firma', img: data.firmaImg}
+  ];
+  return todos.filter(c => campoVisible(cfg, c.key));
+}
+
+async function renderContenido(ctx, cfg, data, k){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, Math.round(L*k), Math.round(A*k));
+  ctx.fillStyle = '#000000';
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+  const bounds = [];
+  const fMM = cfg.fuente_mm;
+  const lh = fMM * 1.4;
+  const fuenteTipo = (cfg.fuenteTipo && String(cfg.fuenteTipo).trim()) ? String(cfg.fuenteTipo).trim() : 'Courier New';
+  const margen = (isFinite(cfg.margenDerecha_mm) ? cfg.margenDerecha_mm : 0);
+  for (const campo of camposDe(cfg, data)){
+    const pos = cfg.posiciones[campo.key];
+    if (!pos) continue;
+    const x = pos.x * k, y = pos.y * k;
+    if (campo.key === 'firma'){
+      const wMM = cfg.firma_ancho_mm || 36, hMM = cfg.firma_alto_mm || 14;
+      if (campo.img){
+        ctx.drawImage(campo.img, x, y, wMM*k, hMM*k);
+      }
+      bounds.push({key:'firma', x:pos.x, y:pos.y, w:wMM, h:hMM});
+      continue;
+    }
+    if (!campo.txt) continue;
+    const alin = (campo.key === 'monto' && cfg.montoAlineacion) ? cfg.montoAlineacion : 'izq';
+    const anchoMM = anchoDispoMM(cfg, pos, campo.key);
+    const fCampo = fuenteCampoMM(cfg, pos);
+    const lhCampo = fCampo * 1.4;
+    ctx.font = (campo.bold ? 'bold ' : '') + (fCampo*k) + 'px "' + fuenteTipo + '", monospace';
+    const lineas = envolver(ctx, campo.txt, anchoMM*k, campo.lineas || 1);
+    let anchoMax = 0;
+    ctx.textAlign = alin === 'der' ? 'right' : (alin === 'centro' ? 'center' : 'left');
+    const clipX = alin === 'der' ? (pos.x - anchoMM)*k : (alin === 'centro' ? (pos.x - anchoMM/2)*k : x);
+    const clipH = Math.max(fCampo*1.2, lineas.length * lhCampo) * k;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(clipX, y - 0.2*k, anchoMM*k, clipH + 0.4*k);
+    ctx.clip();
+    lineas.forEach((ln, i) => {
+      ctx.fillText(ln, x, y + i*lhCampo*k);
+      anchoMax = Math.max(anchoMax, ctx.measureText(ln).width);
+    });
+    ctx.restore();
+    ctx.textAlign = 'left';
+    const wMM = Math.min(anchoMax / k, anchoMM);
+    const bx = alin === 'der' ? pos.x - wMM : (alin === 'centro' ? pos.x - wMM/2 : pos.x);
+    const hMM = Math.max(fCampo*1.2, lineas.length * lhCampo);
+    const anchoReal = anchoMax / k;
+    const recortado = anchoReal > anchoMM + 0.05 || bx < -0.05;
+    bounds.push({key:campo.key, x:bx, y:pos.y, w:wMM, h:hMM, recortado});
+  }
+  return bounds;
+}
+
+function regionImprimibleNatural(cfg){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  const maxW = cfg.anchoImpresion_mm || 80;
+  const o = ((Number(cfg.orient) % 360) + 360) % 360;
+  const offX = cfg.offsetX_mm || 0;
+  const offY = cfg.offsetY_mm || 0;
+  let destW = (o === 0 || o === 180 ? L : A) + Math.max(0, offX);
+  let destH = (o === 0 || o === 180 ? A : L) + Math.max(0, offY);
+  const pw = Math.min(destW, maxW);
+  const ph = destH;
+  const pts = [[0,0],[pw,0],[pw,ph],[0,ph]].map(([x, y]) => destANatural(cfg, x, y));
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  return {
+    x: Math.min(...xs), y: Math.min(...ys),
+    w: Math.max(...xs) - Math.min(...xs),
+    h: Math.max(...ys) - Math.min(...ys),
+    recortado: destW > maxW + 0.01,
+    destW, maxW
+  };
+}
+
+function renderGuias(ctx, cfg, bounds, k){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  ctx.save();
+  const reg = regionImprimibleNatural(cfg);
+  if (reg.recortado){
+    ctx.strokeStyle = '#e65100';
+    ctx.lineWidth = Math.max(1.2, 0.3*k);
+    ctx.setLineDash([8, 5]);
+    ctx.strokeRect(reg.x*k, reg.y*k, reg.w*k, reg.h*k);
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#e65100';
+    ctx.font = 'bold ' + (2.4*k) + 'px Segoe UI, Arial';
+    ctx.fillText('ÁREA IMPRIMIBLE ' + reg.maxW + ' mm — fuera se recorta', (reg.x + 2)*k, (reg.y + 1.5)*k);
+  }
+  ctx.strokeStyle = '#0b5cad';
+  ctx.lineWidth = Math.max(1, 0.2*k);
+  ctx.setLineDash([4, 3]);
+  ctx.font = (2.2*k) + 'px Segoe UI, Arial';
+  ctx.fillStyle = '#0b5cad';
+  ctx.textBaseline = 'top';
+  for (const b of bounds){
+    const activo = state.sel === b.key;
+    if (activo){
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#e65100';
+      ctx.lineWidth = Math.max(1.2, 0.35*k);
+      ctx.strokeRect(b.x*k - 3, b.y*k - 3, b.w*k + 6, b.h*k + 6);
+      ctx.fillStyle = 'rgba(230,81,0,.12)';
+      ctx.fillRect(b.x*k - 3, b.y*k - 3, b.w*k + 6, b.h*k + 6);
+      ctx.setLineDash([4, 3]);
+      ctx.strokeStyle = '#0b5cad';
+      ctx.lineWidth = Math.max(1, 0.2*k);
+    } else {
+      ctx.setLineDash([4, 3]);
+      ctx.strokeStyle = '#0b5cad';
+      ctx.lineWidth = Math.max(1, 0.2*k);
+    }
+    ctx.strokeRect(b.x*k - 2, b.y*k - 2, b.w*k + 4, b.h*k + 4);
+    ctx.fillText((activo ? '▸ ' : '') + (NOMBRES_CAMPO[b.key] || b.key), b.x*k, (b.y - 3.4)*k);
+  }
+      const margenFin = isFinite(cfg.margenDerecha_mm) ? cfg.margenDerecha_mm : 0;
+  if (margenFin > 0){
+    const xf = (L - margenFin) * k;
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = '#e65100';
+    ctx.lineWidth = Math.max(1.1, 0.25*k);
+    ctx.beginPath();
+    ctx.moveTo(xf, 0);
+    ctx.lineTo(xf, A*k);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#e65100';
+    ctx.font = 'bold ' + (2*k) + 'px Segoe UI, Arial';
+    ctx.save();
+    ctx.translate(xf - 1.2*k, 2*k);
+    ctx.rotate(Math.PI / 2);
+    ctx.fillText('FIN TEXTO ' + (L - margenFin) + ' mm', 0, 0);
+    ctx.restore();
+  }
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#c62828';
+  ctx.strokeRect(1*k, (A - 9)*k, (L - 2)*k, 7.5*k);
+  ctx.fillStyle = '#c62828';
+  ctx.font = (2.2*k) + 'px Segoe UI, Arial';
+  ctx.fillText('ZONA MICR — no imprimir', 3*k, (A - 8.4)*k);
+  ctx.strokeStyle = '#94a3b5';
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(0.5*k, 0.5*k, (L - 1)*k, (A - 1)*k);
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#94a3b5';
+  ctx.font = (2*k) + 'px Segoe UI, Arial';
+  ctx.fillText('borde del cheque ' + L + '×' + A + ' mm', 3*k, 1*k);
+  ctx.restore();
+}
+
+function rotarCanvas(src, grados){
+  const g = ((grados % 360) + 360) % 360;
+  if (g === 0) return src;
+  const w = src.width, h = src.height;
+  const dst = document.createElement('canvas');
+  dst.width = (g === 90 || g === 270) ? h : w;
+  dst.height = (g === 90 || g === 270) ? w : h;
+  const ctx = dst.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, dst.width, dst.height);
+  ctx.save();
+  if (g === 90){ ctx.translate(h, 0); ctx.rotate(Math.PI/2); }
+  else if (g === 180){ ctx.translate(w, h); ctx.rotate(Math.PI); }
+  else if (g === 270){ ctx.translate(0, w); ctx.rotate(-Math.PI/2); }
+  ctx.drawImage(src, 0, 0);
+  ctx.restore();
+  return dst;
+}
+
+function aplicarOffset(src, cfg, k){
+  const offX = Math.round(cfg.offsetX_mm * k);
+  const offY = Math.round(cfg.offsetY_mm * k);
+  const W = src.width + Math.max(0, offX);
+  const H = src.height + Math.max(0, offY);
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, W);
+  c.height = Math.max(1, H);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(src, offX, offY);
+  return c;
+}
+
+function empaquetar(canvas){
+  const w = canvas.width, h = canvas.height;
+  const d = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+  const bpr = Math.ceil(w / 8);
+  const out = new Uint8Array(bpr * h);
+  for (let y = 0; y < h; y++){
+    const fila = y * bpr;
+    for (let x = 0; x < w; x++){
+      const i = (y * w + x) * 4;
+      if (d[i+3] > 40 && (d[i] + d[i+1] + d[i+2]) / 3 < 170){
+        out[fila + (x >> 3)] |= (0x80 >> (x & 7));
+      }
+    }
+  }
+  let s = '';
+  const TAM = 0x8000;
+  for (let i = 0; i < out.length; i += TAM){
+    s += String.fromCharCode.apply(null, out.subarray(i, Math.min(i + TAM, out.length)));
+  }
+  return { w, h, bytesPerRow: bpr, data: btoa(s) };
+}
+
+async function construirLienzoImpresion(cfg, data){
+  const k = cfg.dpi / 25.4;
+  const nat = document.createElement('canvas');
+  nat.width = Math.round(cfg.cheque.largo_mm * k);
+  nat.height = Math.round(cfg.cheque.ancho_mm * k);
+  data.firmaImg = data.firma ? await cargarImg(data.firma) : null;
+  await renderContenido(nat.getContext('2d'), cfg, data, k);
+  const rot = rotarCanvas(nat, cfg.orient);
+  return aplicarOffset(rot, cfg, k);
+}
+
+function datosFormulario(){
+  const cfg = state.cfg || { cuenta:{}, simboloMoneda:'S/', moneda:'SOLES', imprimirCuenta:false, posiciones:{}, cheque:{largo_mm:700,ancho_mm:70} };
+  const monto = parseFloat($('fMonto').value) || 0;
+  const letra = state.letraManual ? $('fLetra').value.trim() : numeroALetras(monto);
+  return {
+    fechaText: fechaLarga($('fFecha').value, cfg.cuenta.ciudad, cfg.fechaFormato),
+    numeroText: 'N° ' + $('fNumero').value.trim(),
+    beneficiario: $('fBenef').value.trim(),
+    montoText: (cfg.simboloMoneda || 'S/') + ' ' + fmtMonto(monto),
+    letraText: letra,
+    concepto: $('fConcepto').value.trim(),
+    cuentaText: (cfg.imprimirCuenta && cfg.cuenta.numero) ? 'CTA. ' + cfg.cuenta.numero : '',
+    firma: padFirma.hayTinta() ? padFirma.canvas.toDataURL() : null
+  };
+}
+
+async function refrescarPreview(){
+  if (!state.cfg) return;
+  try {
+    const cfg = state.cfg;
+    const k = Math.max(0.4, Math.min(4, 30000 / Math.max(1, cfg.cheque.largo_mm)));
+    const pv = $('preview');
+    const data = datosFormulario();
+    data.firmaImg = data.firma ? await cargarImg(data.firma) : null;
+    const comoImprime = !!( $('chkComoImprime') && $('chkComoImprime').checked );
+    state.comoImprime = comoImprime;
+    let bounds;
+    if (!comoImprime){
+      state.destL = cfg.cheque.largo_mm;
+      state.destA = cfg.cheque.ancho_mm;
+      pv.width = Math.round(cfg.cheque.largo_mm * k);
+      pv.height = Math.round(cfg.cheque.ancho_mm * k);
+      aplicarZoom();
+      const ctx = pv.getContext('2d');
+      bounds = await renderContenido(ctx, cfg, data, k);
+      state.bounds = bounds;
+      if ($('chkGuias').checked) renderGuias(ctx, cfg, bounds, k);
+    } else {
+      const d = dimsDestino(cfg);
+      state.destL = d.destL;
+      state.destA = d.destA;
+      const nat = document.createElement('canvas');
+      nat.width = Math.round(cfg.cheque.largo_mm * k);
+      nat.height = Math.round(cfg.cheque.ancho_mm * k);
+      const nctx = nat.getContext('2d');
+      bounds = await renderContenido(nctx, cfg, data, k);
+      state.bounds = bounds;
+      if ($('chkGuias').checked) renderGuias(nctx, cfg, bounds, k);
+      let fin = rotarCanvas(nat, cfg.orient);
+      fin = aplicarOffset(fin, cfg, k);
+      pv.width = fin.width;
+      pv.height = fin.height;
+      aplicarZoom();
+      const ctx = pv.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, pv.width, pv.height);
+      ctx.drawImage(fin, 0, 0);
+    }
+    pintarPosGrid();
+    const fechaChip = $('fFechaLarga').firstElementChild;
+    fechaChip.textContent = data.fechaText || 'línea de fecha';
+    const info = $('pvInfo');
+    if (info){
+      const reg = regionImprimibleNatural(cfg);
+      const L = cfg.cheque.largo_mm;
+  const margenFin = isFinite(cfg.margenDerecha_mm) ? cfg.margenDerecha_mm : 0;
+      const cortados = bounds.filter(b => b.recortado).map(b => NOMBRES_CAMPO[b.key] || b.key);
+      let extra = '';
+      if (reg.recortado) extra = ' · ⚠ recorta en ' + reg.maxW + ' mm (destino ' + Math.round(reg.destW) + ' mm)';
+      if (cortados.length) extra += ' · ⚠ texto cortado en el final: ' + cortados.join(', ');
+      info.textContent = 'Cheque ' + cfg.cheque.largo_mm + ' × ' + cfg.cheque.ancho_mm +
+        ' mm · fuente ' + cfg.fuente_mm + ' mm · orientación ' + cfg.orient + '° · campos: ' + bounds.length +
+        (comoImprime ? ' · vista COMO IMPRIME' : '') +
+        (margenFin > 0 ? ' · fin texto ' + (L - margenFin) + ' mm' : '') + extra;
+    }
+  } catch(e){
+    console.error('refrescarPreview', e);
+    toast('Error en la vista previa: ' + e.message, true);
+    const pv = $('preview');
+    if (pv){
+      if (pv.width < 400) pv.width = 640;
+      if (pv.height < 80) pv.height = 200;
+      const ctx = pv.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, pv.width, pv.height);
+      ctx.fillStyle = '#c62828';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('Error de vista previa: ' + e.message, 10, 30);
+    }
+  }
+}
+
+function crearPad(canvas, btnImg, btnClr, inputFile){
+  const ctx = canvas.getContext('2d');
+  const pad = { canvas, tinta:false, hayTinta: () => pad.tinta, limpiar, toDataURL: () => canvas.toDataURL() };
+  function fondo(){
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    pad.tinta = false;
+  }
+  function limpiar(){ fondo(); }
+  fondo();
+  let dib = false;
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height };
+  }
+  canvas.addEventListener('pointerdown', (e) => {
+    dib = true;
+    canvas.setPointerCapture(e.pointerId);
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.strokeStyle = '#101418';
+    ctx.lineWidth = 3.2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dib) return;
+    const p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    pad.tinta = true;
+  });
+  canvas.addEventListener('pointerup', () => { dib = false; refrescarPreview(); });
+  btnClr.addEventListener('click', () => { limpiar(); refrescarPreview(); });
+  btnImg.addEventListener('click', () => inputFile.click());
+  inputFile.addEventListener('change', () => {
+    const f = inputFile.files[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    const img = new Image();
+    img.onload = () => {
+      limpiar();
+      const padM = 12;
+      const esc = Math.min((canvas.width - padM*2)/img.width, (canvas.height - padM*2)/img.height);
+      ctx.drawImage(img, padM, padM, img.width*esc, img.height*esc);
+      pad.tinta = true;
+      URL.revokeObjectURL(url);
+      inputFile.value = '';
+      refrescarPreview();
+    };
+    img.src = url;
+  });
+  return pad;
+}
+
+let padFirma, padLote;
+
+async function enviarImpresion(raster, cheque){
+  const resp = await fetch('/api/imprimir', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ raster, cheque })
+  });
+  const j = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(j.message || 'Error de impresión');
+  return j;
+}
+
+async function imprimirCheque(data, meta){
+  const lienzo = await construirLienzoImpresion(state.cfg, data);
+  const raster = empaquetar(lienzo);
+  return enviarImpresion(raster, meta);
+}
+
+let colaGuardar = Promise.resolve();
+async function guardarConfig(parcial){
+  const body = { ...parcial };
+  if (!body.posiciones && state.cfg && state.cfg.posiciones) body.posiciones = state.cfg.posiciones;
+  if (!body.camposVisibles && state.cfg && state.cfg.camposVisibles) body.camposVisibles = state.cfg.camposVisibles;
+  const tarea = colaGuardar.then(async () => {
+    try {
+      const resp = await fetch('/api/config', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const j = await resp.json();
+      if (!resp.ok || j.status === 'error') throw new Error(j.message || 'HTTP ' + resp.status);
+      if (j.config){
+        if (body.posiciones) j.config.posiciones = body.posiciones;
+        if (body.camposVisibles) j.config.camposVisibles = body.camposVisibles;
+        state.cfg = j.config;
+      }
+      return j;
+    } catch (e) {
+      toast('No se pudo guardar: ' + e.message, true);
+      throw e;
+    }
+  });
+  colaGuardar = tarea.catch(() => {});
+  return tarea;
+}
+
+function marcarSiguienteUsado(num){
+  const n = parseInt(num, 10);
+  if (!isNaN(n) && n >= state.cfg.siguiente_numero){
+    state.cfg.siguiente_numero = n + 1;
+    guardarConfig({ siguiente_numero: state.cfg.siguiente_numero });
+    $('fNumero').value = String(state.cfg.siguiente_numero);
+    $('lPrimero').value = String(state.cfg.siguiente_numero);
+    $('ajSiguiente').value = String(state.cfg.siguiente_numero);
+  }
+}
+
+$('btnImprimir').addEventListener('click', async () => {
+  const data = datosFormulario();
+  if (!data.beneficiario){ toast('Escribe el beneficiario', true); return; }
+  const monto = parseFloat($('fMonto').value) || 0;
+  if (monto <= 0){ toast('Escribe un monto mayor a cero', true); return; }
+  $('btnImprimir').disabled = true;
+  try {
+    await imprimirCheque(data, {
+      numero: $('fNumero').value.trim(),
+      beneficiario: data.beneficiario,
+      monto: data.montoText,
+      letra: data.letraText,
+      concepto: data.concepto
+    });
+    toast('Cheque enviado a la impresora ✓');
+    marcarSiguienteUsado($('fNumero').value);
+    refrescarPreview();
+  } catch(e){
+    toast(e.message, true);
+  } finally {
+    $('btnImprimir').disabled = false;
+  }
+});
+
+$('btnGrilla').addEventListener('click', async () => {
+  $('btnGrilla').disabled = true;
+  try {
+    const cfg = state.cfg;
+    const k = cfg.dpi / 25.4;
+    const nat = document.createElement('canvas');
+    nat.width = Math.round(cfg.cheque.largo_mm * k);
+    nat.height = Math.round(cfg.cheque.ancho_mm * k);
+    dibujarGrilla(nat.getContext('2d'), cfg, k);
+    const rot = rotarCanvas(nat, cfg.orient);
+    const fin = aplicarOffset(rot, cfg, k);
+    await enviarImpresion(empaquetar(fin), null);
+    toast('Grilla enviada ✓ — compara con la regla');
+  } catch(e){ toast(e.message, true); }
+  finally { $('btnGrilla').disabled = false; }
+});
+
+$('btnAvance').addEventListener('click', async () => {
+  $('btnAvance').disabled = true;
+  try {
+    const cfg = state.cfg;
+    const k = cfg.dpi / 25.4;
+    const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+    const nat = document.createElement('canvas');
+    nat.width = Math.round(L * k);
+    nat.height = Math.round(A * k);
+    dibujarTestAvance(nat.getContext('2d'), cfg, k);
+    const rot = rotarCanvas(nat, cfg.orient);
+    const fin = aplicarOffset(rot, cfg, k);
+    await enviarImpresion(empaquetar(fin), null);
+    toast('Test de avance enviado ✓ — FIN debe caer en el borde del papel');
+  } catch(e){ toast(e.message, true); }
+  finally { $('btnAvance').disabled = false; }
+});
+
+function dibujarTestAvance(ctx, cfg, k){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  const feedEsLargo = ejesSegunOrient(cfg.orient).feedEsLargo;
+  const feed = feedEsLargo ? L : A;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, L*k, A*k);
+  ctx.fillStyle = '#000';
+  const banda = Math.min(6, feed * 0.08) * k;
+  if (feedEsLargo){
+    ctx.fillRect(0, 0, L*k, banda);
+    ctx.fillRect(0, A*k - banda, L*k, banda);
+    ctx.fillRect(0, A*k - banda * 2.2, L*k, banda * 0.35);
+    ctx.font = 'bold ' + Math.min(5, A * 0.07) * k + 'px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('ENTRADA', L*k/2, banda + 1.5*k);
+    ctx.fillText('FIN ' + L + 'mm', L*k/2, A*k - banda - 1.2*k);
+    ctx.textAlign = 'left';
+    for (let x = 10; x < L; x += 10){
+      ctx.fillRect(x*k, 0, Math.max(1, 0.4*k), banda * 0.7);
+      ctx.font = (2.2*k) + 'px "Courier New", monospace';
+      ctx.fillText(String(x), x*k + 0.8*k, banda + 0.5*k);
+    }
+  } else {
+    ctx.fillRect(0, 0, banda, A*k);
+    ctx.fillRect(L*k - banda, 0, banda, A*k);
+    ctx.fillRect(L*k - banda * 2.2, 0, banda * 0.35, A*k);
+    ctx.save();
+    ctx.translate(banda + 1.5*k, A*k/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.font = 'bold ' + Math.min(5, L * 0.07) * k + 'px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('ENTRADA', 0, 0);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(L*k - banda - 1.2*k, A*k/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.font = 'bold ' + Math.min(5, L * 0.07) * k + 'px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('FIN ' + A + 'mm', 0, 0);
+    ctx.restore();
+    ctx.textAlign = 'left';
+    ctx.font = (2.2*k) + 'px "Courier New", monospace';
+    for (let y = 10; y < A; y += 10){
+      ctx.fillRect(0, y*k, banda * 0.7, Math.max(1, 0.4*k));
+      ctx.fillText(String(y), banda + 0.5*k, y*k + 2.5*k);
+    }
+  }
+}
+
+function ejesSegunOrient(o){
+  const g = ((Number(o) % 360) + 360) % 360;
+  return { feedEsLargo: g === 90 || g === 270 };
+}
+
+function actualizarLabelsAvance(){
+  const o = state.cfg && state.cfg.orient;
+  const feedEsLargo = ejesSegunOrient(o).feedEsLargo;
+  const elL = $('lblLargo'), elA = $('lblAncho'), ay = $('ayudaAvance');
+  if (!elL) return;
+  if (feedEsLargo){
+    elL.textContent = 'Largo (mm) — EJE DE AVANCE (hacia donde jala el cheque)';
+    elA.textContent = 'Ancho (mm) — ancho de la cabeza (~80 mm máx.)';
+  } else {
+    elL.textContent = 'Largo (mm) — ancho de la cabeza (~80 mm máx.)';
+    elA.textContent = 'Ancho (mm) — EJE DE AVANCE (hacia donde jala el cheque)';
+  }
+  const cfg = state.cfg;
+  if (ay && cfg){
+    const d = dimsDestino(cfg);
+    ay.textContent = 'Con orientación ' + cfg.orient + '°: el papel se imprime ' +
+      d.destL + ' × ' + d.destA + ' mm (ancho × avance). ' +
+      'Si sobra hueco al FINAL del cheque al salir, aumenta el eje de avance (' +
+      (feedEsLargo ? 'Largo' : 'Ancho') + ') hasta igualar la longitud real del papel.';
+  }
+}
+
+$('btnGrilla').addEventListener('click', async () => {
+  $('btnGrilla').disabled = true;
+  try {
+    const cfg = state.cfg;
+    const k = cfg.dpi / 25.4;
+    const nat = document.createElement('canvas');
+    nat.width = Math.round(cfg.cheque.largo_mm * k);
+    nat.height = Math.round(cfg.cheque.ancho_mm * k);
+    dibujarGrilla(nat.getContext('2d'), cfg, k);
+    const rot = rotarCanvas(nat, cfg.orient);
+    const fin = aplicarOffset(rot, cfg, k);
+    await enviarImpresion(empaquetar(fin), null);
+    toast('Grilla enviada ✓ — compara con la regla');
+  } catch(e){ toast(e.message, true); }
+  finally { $('btnGrilla').disabled = false; }
+});
+
+function dibujarGrilla(ctx, cfg, k){
+  const L = cfg.cheque.largo_mm, A = cfg.cheque.ancho_mm;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, L*k, A*k);
+  ctx.strokeStyle = '#000';
+  ctx.fillStyle = '#000';
+  ctx.lineWidth = Math.max(1, 0.25*k);
+  ctx.strokeRect(1*k, 1*k, (L-2)*k, (A-2)*k);
+  ctx.lineWidth = Math.max(1, 0.6*k);
+  ctx.beginPath();
+  ctx.moveTo(0, 0.6*k);
+  ctx.lineTo(L*k, 0.6*k);
+  ctx.stroke();
+  ctx.lineWidth = Math.max(1, 0.25*k);
+  ctx.font = 'bold ' + (2.6*k) + 'px "Courier New", monospace';
+  ctx.textBaseline = 'top';
+  ctx.fillRect(3*k, 3*k, 5*k, 5*k);
+  for (let x = 10; x < L; x += 10){
+    for (let y = 10; y < A; y += 10){
+      const X = x*k, Y = y*k;
+      const t = 1.4*k;
+      ctx.beginPath();
+      ctx.moveTo(X - t, Y); ctx.lineTo(X + t, Y);
+      ctx.moveTo(X, Y - t); ctx.lineTo(X, Y + t);
+      ctx.stroke();
+    }
+  }
+  for (let x = 10; x < L; x += 10){
+    ctx.fillText(String(x), x*k + 1*k, 2*k);
+    ctx.fillText(String(x), x*k + 1*k, (A - 5)*k);
+  }
+  for (let y = 10; y < A; y += 10){
+    ctx.fillText(String(y), 9*k, y*k - 1.5*k);
+    ctx.fillText(String(y), (L - 12)*k, y*k - 1.5*k);
+  }
+  const marcas = [2, 5, 10];
+  const esquinas = [
+    { ox: 0, oy: 0, sx: 1, sy: 1 },
+    { ox: L, oy: 0, sx: -1, sy: 1 },
+    { ox: 0, oy: A, sx: 1, sy: -1 },
+    { ox: L, oy: A, sx: -1, sy: -1 }
+  ];
+  ctx.strokeStyle = '#c62828';
+  ctx.fillStyle = '#c62828';
+  ctx.lineWidth = Math.max(1, 0.35*k);
+  ctx.font = 'bold ' + (2.2*k) + 'px "Courier New", monospace';
+  for (const e of esquinas){
+    for (const m of marcas){
+      if (m > L || m > A) continue;
+      const x = e.ox + e.sx * m;
+      const y = e.oy + e.sy * m;
+      ctx.beginPath();
+      ctx.moveTo(e.ox + e.sx * 0.5, y);
+      ctx.lineTo(x, y);
+      ctx.moveTo(x, e.oy + e.sy * 0.5);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.fillText(String(m), x + e.sx * 1.2, y + e.sy * 0.6);
+    }
+  }
+  const reg = regionImprimibleNatural(cfg);
+  if (reg.recortado){
+    ctx.strokeStyle = '#e65100';
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = Math.max(1, 0.4*k);
+    ctx.strokeRect(reg.x*k, reg.y*k, reg.w*k, reg.h*k);
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#e65100';
+    ctx.fillText('IMPRESION ' + reg.maxW + 'mm', (reg.x + 2)*k, (reg.y + 2)*k);
+  }
+}
+
+$('btnPrueba').addEventListener('click', async () => {
+  $('btnPrueba').disabled = true;
+  try {
+    const cfg = state.cfg;
+    const data = {
+      fechaText: fechaLarga(new Date().toISOString().slice(0,10), cfg.cuenta.ciudad, cfg.fechaFormato),
+      numeroText: 'N° ' + cfg.siguiente_numero,
+      beneficiario: 'CHEQUE DE PRUEBA',
+      montoText: (cfg.simboloMoneda || 'S/') + ' 1,500.00',
+      letraText: 'MIL QUINIENTOS CON 00/100 ' + (cfg.moneda || 'SOLES'),
+      concepto: 'CALIBRACION',
+      cuentaText: cfg.imprimirCuenta && cfg.cuenta.numero ? 'CTA. ' + cfg.cuenta.numero : '',
+      firma: null
+    };
+    await imprimirCheque(data, null);
+    toast('Cheque de prueba enviado ✓');
+  } catch(e){ toast(e.message, true); }
+  finally { $('btnPrueba').disabled = false; }
+});
+
+function posToMm(e){
+  const pv = $('preview');
+  const r = pv.getBoundingClientRect();
+  const cfg = state.cfg;
+  const destL = state.destL || cfg.cheque.largo_mm;
+  const destA = state.destA || cfg.cheque.ancho_mm;
+  const dx = (e.clientX - r.left) / r.width * destL;
+  const dy = (e.clientY - r.top) / r.height * destA;
+  if (state.comoImprime) return destANatural(cfg, dx, dy);
+  return { x: dx, y: dy };
+}
+
+function radioHitMm(){
+  const r = $('preview').getBoundingClientRect();
+  const cfg = state.cfg;
+  if (!cfg || !r.width) return 3;
+  const destL = state.destL || cfg.cheque.largo_mm;
+  const pxPorMm = r.width / Math.max(1, destL);
+  return Math.max(1.5, 7 / Math.max(0.01, pxPorMm));
+}
+
+function buscarCampo(p){
+  const rad = radioHitMm();
+  return [...state.bounds].reverse().find(b =>
+    p.x >= b.x - rad && p.x <= b.x + b.w + rad &&
+    p.y >= b.y - rad && p.y <= b.y + b.h + rad) || null;
+}
+
+function aplicarZoom(){
+  const pv = $('preview');
+  const sc = $('previewScroll');
+  if (!pv || !sc) return;
+  if (!state.fitW) fijarFit();
+  const z = state.zoom;
+  const w = Math.max(80, Math.round(state.fitW * z));
+  pv.style.width = w + 'px';
+  pv.style.height = 'auto';
+  const pct = $('zoomPct');
+  if (pct) pct.textContent = Math.round(z * 100) + '%';
+}
+
+function fijarFit(){
+  const sc = $('previewScroll');
+  if (!sc) return;
+  state.fitW = Math.max(120, sc.clientWidth);
+}
+
+function setZoom(z, puntoCanvas){
+  const sc = $('previewScroll');
+  const pv = $('preview');
+  if (!sc || !pv) return;
+  if (!state.fitW) fijarFit();
+  const z0 = state.zoom;
+  const z1 = Math.min(4, Math.max(0.4, Math.round(z * 100) / 100));
+  if (z1 === z0) return;
+  const r = pv.getBoundingClientRect();
+  const cr = sc.getBoundingClientRect();
+  const ox = r.left - cr.left;
+  const oy = r.top - cr.top;
+  const cx = puntoCanvas ? puntoCanvas.x : (ox + r.width / 2);
+  const cy = puntoCanvas ? puntoCanvas.y : (oy + r.height / 2);
+  const fracX = r.width ? (cx + sc.scrollLeft - ox) / r.width : 0.5;
+  const fracY = r.height ? (cy + sc.scrollTop - oy) / r.height : 0.5;
+  state.zoom = z1;
+  aplicarZoom();
+  const r2 = pv.getBoundingClientRect();
+  sc.scrollLeft = Math.max(0, ox2(r2, cr) + fracX * r2.width - cx);
+  sc.scrollTop = Math.max(0, oy2(r2, cr) + fracY * r2.height - cy);
+}
+function ox2(r, cr){ return r.left - cr.left; }
+function oy2(r, cr){ return r.top - cr.top; }
+
+function zoomFit(){
+  state.zoom = 1;
+  fijarFit();
+  aplicarZoom();
+  const sc = $('previewScroll');
+  if (sc){ sc.scrollLeft = 0; sc.scrollTop = 0; }
+}
+
+function guardarPosDebounced(){
+  clearTimeout(state.saveTimer);
+  state.saveTimer = setTimeout(async () => {
+    if (!state.cfg) return;
+    await guardarConfig({ posiciones: state.cfg.posiciones });
+    toast('Posición guardada');
+  }, 350);
+}
+
+$('preview').addEventListener('pointerdown', (e) => {
+  const p = posToMm(e);
+  const hit = buscarCampo(p);
+  if (!hit){ state.sel = null; mostrarSel(); refrescarPreview(); return; }
+  state.dragging = hit.key;
+  const pos = state.cfg.posiciones[hit.key];
+  state.grab = { x: p.x - pos.x, y: p.y - pos.y };
+  $('preview').classList.add('arrastrando');
+  $('preview').setPointerCapture(e.pointerId);
+  state.sel = hit.key;
+  mostrarSel();
+  refrescarPreview();
+});
+$('preview').addEventListener('pointermove', (e) => {
+  if (!state.dragging) return;
+  const p = posToMm(e);
+  const cfg = state.cfg;
+  const pos = cfg.posiciones[state.dragging];
+  pos.x = Math.round(Math.min(cfg.cheque.largo_mm, Math.max(0, p.x - state.grab.x)) * 2) / 2;
+  pos.y = Math.round(Math.min(cfg.cheque.ancho_mm - 5, Math.max(0, p.y - state.grab.y)) * 2) / 2;
+  refrescarPreview();
+  mostrarSel();
+});
+$('preview').addEventListener('pointerup', async () => {
+  if (!state.dragging) return;
+  state.dragging = null;
+  $('preview').classList.remove('arrastrando');
+  await guardarConfig({ posiciones: state.cfg.posiciones });
+  toast('Posición guardada');
+});
+$('preview').addEventListener('dblclick', (e) => {
+  const p = posToMm(e);
+  const hit = buscarCampo(p);
+  if (!hit) return;
+  state.sel = hit.key;
+  mostrarSel();
+  const sc = $('previewScroll');
+  const r = $('preview').getBoundingClientRect();
+  const cr = sc.getBoundingClientRect();
+  const px = (r.left - cr.left) + (p.x / state.cfg.cheque.largo_mm) * r.width;
+  const py = (r.top - cr.top) + (p.y / state.cfg.cheque.ancho_mm) * r.height;
+  setZoom(Math.min(4, (state.zoom || 1) * 1.8), { x: px - (r.left - cr.left), y: py - (r.top - cr.top) });
+  const r2 = $('preview').getBoundingClientRect();
+  sc.scrollLeft = Math.max(0, (r2.left - cr.left) + (p.x / state.cfg.cheque.largo_mm) * r2.width - sc.clientWidth / 2);
+  sc.scrollTop = Math.max(0, (r2.top - cr.top) + (p.y / state.cfg.cheque.ancho_mm) * r2.height - sc.clientHeight / 2);
+  refrescarPreview();
+});
+$('preview').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const dir = e.deltaY > 0 ? 1/1.15 : 1.15;
+  const r = e.currentTarget.getBoundingClientRect();
+  setZoom((state.zoom || 1) * dir, { x: e.clientX - r.left, y: e.clientY - r.top });
+}, { passive: false });
+$('btnZoomIn').addEventListener('click', () => setZoom((state.zoom || 1) * 1.25));
+$('btnZoomOut').addEventListener('click', () => setZoom((state.zoom || 1) / 1.25));
+$('btnZoomFit').addEventListener('click', zoomFit);
+window.addEventListener('keydown', (e) => {
+  if (!state.sel || !state.cfg) return;
+  const tag = (e.target && e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  const paso = e.shiftKey ? 5 : (e.altKey ? 0.5 : 1);
+  const pos = state.cfg.posiciones[state.sel];
+  if (!pos) return;
+  let movio = false;
+  if (e.key === 'ArrowLeft'){ pos.x = Math.max(0, pos.x - paso); movio = true; }
+  else if (e.key === 'ArrowRight'){ pos.x = Math.min(state.cfg.cheque.largo_mm, pos.x + paso); movio = true; }
+  else if (e.key === 'ArrowUp'){ pos.y = Math.max(0, pos.y - paso); movio = true; }
+  else if (e.key === 'ArrowDown'){ pos.y = Math.min(state.cfg.cheque.ancho_mm - 5, pos.y + paso); movio = true; }
+  else if (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_'){
+    if (state.sel === 'firma') return;
+    const base = fuenteCampoMM(state.cfg, pos);
+    const pasoF = e.shiftKey ? 0.5 : 0.1;
+    const dir = (e.key === '-' || e.key === '_') ? -1 : 1;
+    const nf = Math.min(8, Math.max(1, Math.round((base + dir * pasoF) * 10) / 10));
+    pos.fuente_mm = nf;
+    e.preventDefault();
+    refrescarPreview();
+    mostrarSel();
+    pintarPosGrid();
+    guardarPosDebounced();
+    return;
+  }
+  if (movio){
+    e.preventDefault();
+    refrescarPreview();
+    mostrarSel();
+    guardarPosDebounced();
+  }
+});
+window.addEventListener('resize', () => {
+  fijarFit();
+  aplicarZoom();
+});
+function mostrarSel(){
+  if (!state.sel){ $('selInfo').textContent = ''; return; }
+  const p = state.cfg.posiciones[state.sel];
+  const f = fuenteCampoMM(state.cfg, p);
+  const personal = (p.fuente_mm >= 1 && p.fuente_mm <= 8) ? String(p.fuente_mm) : 'global ' + state.cfg.fuente_mm;
+  $('selInfo').textContent = NOMBRES_CAMPO[state.sel] + ': X=' + p.x + ' mm, Y=' + p.y + ' mm · letra ' + f + ' mm (' + personal + ')';
+}
+$('chkGuias').addEventListener('change', refrescarPreview);
+if ($('chkComoImprime')) $('chkComoImprime').addEventListener('change', refrescarPreview);
+
+function pintarPosGrid(){
+  const cont = $('posGrid');
+  cont.innerHTML = '';
+  const vis = (state.cfg.camposVisibles || {});
+  for (const key of CAMPOS){
+    const pos = state.cfg.posiciones[key];
+    if (!pos) continue;
+    if (key === 'firma') continue;
+    const oculto = vis[key] === false;
+    const fVal = (pos.fuente_mm >= 1 && pos.fuente_mm <= 8) ? pos.fuente_mm : '';
+    const div = document.createElement('div');
+    div.style.cssText = 'font-size:12px;background:' + (oculto ? '#f1f3f6' : '#f6f9fc') + ';border:1px solid #d7dee8;border-radius:6px;padding:6px 8px' + (oculto ? ';opacity:.55' : '');
+    div.innerHTML = '<b style="color:#0b5cad">' + NOMBRES_CAMPO[key] + '</b> <label style="float:right;font-weight:400;cursor:pointer"><input type="checkbox" class="pgVis"' + (oculto ? '' : ' checked') + ' style="width:auto"> ver</label><br>' +
+      'X <input type="number" class="pgX" step="0.5" value="' + pos.x + '" style="width:52px"> Y <input type="number" class="pgY" step="0.5" value="' + pos.y + '" style="width:52px"><br>' +
+      'Letra <input type="number" class="pgF" step="0.1" min="1" max="8" value="' + fVal + '" placeholder="global" style="width:52px"> mm';
+    const ix = div.querySelector('.pgX');
+    const iy = div.querySelector('.pgY');
+    const iF = div.querySelector('.pgF');
+    const chk = div.querySelector('.pgVis');
+    ix.addEventListener('change', () => { state.sel = key; pos.x = parseFloat(ix.value) || 0; guardarConfig({posiciones: state.cfg.posiciones}); refrescarPreview(); mostrarSel(); });
+    iy.addEventListener('change', () => { state.sel = key; pos.y = parseFloat(iy.value) || 0; guardarConfig({posiciones: state.cfg.posiciones}); refrescarPreview(); mostrarSel(); });
+    if (iF){
+      iF.addEventListener('change', () => {
+        state.sel = key;
+        const v = parseFloat(iF.value);
+        if (isFinite(v) && v >= 1 && v <= 8) pos.fuente_mm = Math.round(v * 10) / 10;
+        else pos.fuente_mm = 0;
+        guardarConfig({posiciones: state.cfg.posiciones});
+        refrescarPreview();
+        mostrarSel();
+      });
+    }
+    chk.addEventListener('change', async () => {
+      state.cfg.camposVisibles = state.cfg.camposVisibles || {};
+      state.cfg.camposVisibles[key] = chk.checked;
+      await guardarConfig({ camposVisibles: state.cfg.camposVisibles });
+      refrescarPreview();
+      pintarCamposVisibles();
+      pintarPosGrid();
+    });
+    cont.appendChild(div);
+  }
+}
+
+async function ajustarCampo1Linea(){
+  if (!state.cfg){ return; }
+  if (!state.sel || state.sel === 'firma'){
+    toast('Selecciona un campo de texto primero (fecha, monto, etc.)', true);
+    return;
+  }
+  const key = state.sel;
+  const cfg = state.cfg;
+  const pos = cfg.posiciones[key];
+  if (!pos){ return; }
+  const data = datosFormulario();
+  const campo = camposDe(cfg, data).find(c => c.key === key);
+  if (!campo || !campo.txt){
+    toast('El campo "' + (NOMBRES_CAMPO[key] || key) + '" está vacío u oculto', true);
+    return;
+  }
+  const anchoMM = anchoDispoMM(cfg, pos, key);
+  if (anchoMM <= 0.5){
+    toast('No hay ancho disponible para ese campo', true);
+    return;
+  }
+  const k = cfg.dpi / 25.4;
+  const fuenteTipo = (cfg.fuenteTipo && String(cfg.fuenteTipo).trim()) ? String(cfg.fuenteTipo).trim() : 'Courier New';
+  const bold = campo.bold ? 'bold ' : '';
+  const mc = document.createElement('canvas').getContext('2d');
+  let mejor = 0;
+  for (let t = 80; t >= 10; t--){
+    const fm = t / 10;
+    mc.font = bold + (fm * k) + 'px "' + fuenteTipo + '", monospace';
+    if (mc.measureText(campo.txt).width <= anchoMM * k){
+      mejor = fm;
+      break;
+    }
+  }
+  if (!mejor){
+    pos.fuente_mm = 1;
+    toast('No cabe en 1 línea ni a 1 mm — se puso 1 mm (se cortará)', true);
+  } else {
+    pos.fuente_mm = mejor;
+    toast(NOMBRES_CAMPO[key] + ' ajustado a ' + mejor + ' mm en 1 línea ✓');
+  }
+  await guardarConfig({ posiciones: cfg.posiciones });
+  refrescarPreview();
+  mostrarSel();
+  pintarPosGrid();
+}
+
+$('btnAjustarLinea').addEventListener('click', ajustarCampo1Linea);
+
+function pintarLote(){
+  const grid = $('loteGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 3; i++){
+    const div = document.createElement('div');
+    div.className = 'loteCard';
+    div.innerHTML =
+      '<h4>Cheque ' + (i+1) + '</h4>' +
+      '<label>N°</label><input type="text" data-l="numero" data-i="' + i + '" class="numAuto">' +
+      '<label>Beneficiario</label><input type="text" data-l="benef" data-i="' + i + '" placeholder="Beneficiario">' +
+      '<label>Monto</label><input type="number" data-l="monto" data-i="' + i + '" step="0.01" min="0">' +
+      '<label>Concepto</label><input type="text" data-l="concepto" data-i="' + i + '" placeholder="Concepto">' +
+      '<div class="letraAuto" data-letra="' + i + '" style="font-size:11.5px;color:#68788c;margin-top:6px;min-height:28px"></div>';
+    grid.appendChild(div);
+  }
+  const primero = state.cfg.siguiente_numero;
+  $('lPrimero').value = primero;
+  grid.querySelectorAll('[data-l=numero]').forEach((el, i) => { el.value = primero + i; });
+  grid.querySelectorAll('[data-l=monto]').forEach(el => {
+    el.addEventListener('input', () => {
+      const i = el.dataset.i;
+      const m = parseFloat(el.value) || 0;
+      grid.querySelector('[data-letra="' + i + '"]').textContent = m > 0 ? numeroALetras(m) : '';
+    });
+  });
+}
+
+function datosLote(i){
+  const cfg = state.cfg;
+  const grid = $('loteGrid');
+  const get = (l) => grid.querySelector('[data-l="' + l + '"][data-i="' + i + '"]').value;
+  const monto = parseFloat(get('monto')) || 0;
+  const fecha = $('lFecha').value;
+  return {
+    fechaText: fechaLarga(fecha, cfg.cuenta.ciudad, cfg.fechaFormato),
+    numeroText: 'N° ' + get('numero').trim(),
+    beneficiario: get('benef').trim(),
+    montoText: (cfg.simboloMoneda || 'S/') + ' ' + fmtMonto(monto),
+    letraText: numeroALetras(monto),
+    concepto: get('concepto').trim(),
+    cuentaText: (cfg.imprimirCuenta && cfg.cuenta.numero) ? 'CTA. ' + cfg.cuenta.numero : '',
+    firma: padLote.hayTinta() ? padLote.canvas.toDataURL() : null,
+    _monto: monto,
+    _numero: get('numero').trim(),
+    _concepto: get('concepto').trim()
+  };
+}
+
+function esperarSgte(total, actual){
+  return new Promise((resolve) => {
+    const m = $('modalLote');
+    m.classList.remove('oculto');
+    $('mdTitulo').textContent = 'Cheque ' + actual + ' de ' + total + ' impreso ✓';
+    $('mdTexto').textContent = 'Retira el cheque de la ranura y coloca el siguiente. Se imprimirá automáticamente.';
+    const barra = $('mdBarra');
+    const dur = state.cfg.loteDelayMs || 8000;
+    const t0 = performance.now();
+    let raf;
+    let resuelto = false;
+    function fin(ok){
+      if (resuelto) return;
+      resuelto = true;
+      cancelAnimationFrame(raf);
+      clearTimeout(temp);
+      m.classList.add('oculto');
+      resolve(ok);
+    }
+    function tick(){
+      const p = Math.min(1, (performance.now() - t0) / dur);
+      barra.style.width = (p * 100) + '%';
+      if (p >= 1){ fin(true); return; }
+      raf = requestAnimationFrame(tick);
+    }
+    const temp = setTimeout(() => fin(true), dur);
+    $('mdSeguir').onclick = () => fin(true);
+    $('mdCancelar').onclick = () => fin(false);
+    raf = requestAnimationFrame(tick);
+  });
+}
+
+$('btnLote').addEventListener('click', async () => {
+  const cheques = [datosLote(0), datosLote(1), datosLote(2)];
+  for (let i = 0; i < 3; i++){
+    const c = cheques[i];
+    if (!c.beneficiario){ toast('Falta el beneficiario del cheque ' + (i+1), true); return; }
+    if (c._monto <= 0){ toast('Falta el monto del cheque ' + (i+1), true); return; }
+  }
+  $('btnLote').disabled = true;
+  try {
+    for (let i = 0; i < 3; i++){
+      const c = cheques[i];
+      await imprimirCheque(c, { numero: c._numero, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto });
+      marcarSiguienteUsado(c._numero);
+      if (i < 2){
+        const seguir = await esperarSgte(3, i + 1);
+        if (!seguir){ toast('Lote cancelado'); break; }
+      }
+    }
+    toast('Lote finalizado ✓');
+    pintarLote();
+  } catch(e){
+    toast(e.message, true);
+  } finally {
+    $('btnLote').disabled = false;
+    $('modalLote').classList.add('oculto');
+  }
+});
+
+async function refrescarEstado(){
+  try {
+    const r = await fetch('/api/impresora');
+    const e = await r.json();
+    const ok = e.ok;
+    $('estado').innerHTML = '<span class="punto ' + (ok ? 'ok' : 'mal') + '"></span>' +
+      (e.nombre || '') + (e.puerto ? ' · ' + e.puerto : '') + (e.trabajos ? ' · cola: ' + e.trabajos : '') +
+      (ok ? '' : ' · ' + (e.error || 'revisar'));
+    const grid = $('estGrid');
+    grid.innerHTML =
+      cajaEstado('Estado', ok ? 'Lista ✓' : 'Con problemas', ok) +
+      cajaEstado('Cola (spooler)', e.spooler || '?', e.spooler === 'Running') +
+      cajaEstado('Puerto', e.puerto || '?', e.puerto && e.puerto !== 'COM2:' && e.puerto !== 'COM3:') +
+      cajaEstado('Trabajos en cola', String(e.trabajos ?? '?'), (e.trabajos ?? 0) === 0);
+  } catch(e){
+    $('estado').innerHTML = '<span class="punto mal"></span>servidor caído';
+  }
+}
+function cajaEstado(titulo, valor, bien){
+  return '<div class="estCaja"><b>' + titulo + '</b><span class="punto ' + (bien ? 'ok' : 'mal') + '"></span>' + valor + '</div>';
+}
+
+async function cargarHistorial(){
+  try {
+    const r = await fetch('/api/historial');
+    const hist = await r.json();
+    const body = $('histBody');
+    body.innerHTML = '';
+    $('histVacio').style.display = hist.length ? 'none' : 'block';
+    for (const h of hist){
+      const tr = document.createElement('tr');
+      const f = new Date(h.fecha);
+      tr.innerHTML =
+        '<td>' + f.toLocaleDateString('es-PE') + ' ' + f.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
+        '<td>' + (h.numero || '') + '</td>' +
+        '<td>' + (h.beneficiario || '') + '</td>' +
+        '<td>' + (h.monto || '') + '</td>' +
+        '<td>' + (h.concepto || '') + '</td>' +
+        '<td><button class="btn sec" style="padding:5px 10px;font-size:12.5px">Cargar</button></td>';
+      tr.querySelector('button').addEventListener('click', () => {
+        $('fNumero').value = h.numero ? String(h.numero).replace(/^N°\s*/, '') : state.cfg.siguiente_numero;
+        $('fBenef').value = h.beneficiario || '';
+        const m = String(h.monto || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
+        $('fMonto').value = m || '';
+        state.letraManual = false;
+        $('fLetra').value = h.letra || '';
+        $('fConcepto').value = h.concepto || '';
+        activarTab('nuevo');
+        refrescarPreview();
+      });
+      body.appendChild(tr);
+    }
+  } catch(e){}
+}
+
+function pintarCamposVisibles(){
+  const cont = $('camposVisibles');
+  if (!cont || !state.cfg) return;
+  const vis = state.cfg.camposVisibles || {};
+  cont.innerHTML = '';
+  for (const key of CAMPOS){
+    const on = vis[key] !== false;
+    const div = document.createElement('div');
+    div.style.cssText = 'font-size:13px;background:#f6f9fc;border:1px solid #d7dee8;border-radius:6px;padding:7px 9px;display:flex;align-items:center;gap:7px';
+    const id = 'cv_' + key;
+    div.innerHTML = '<input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><label for="' + id + '" style="margin:0;cursor:pointer">' + NOMBRES_CAMPO[key] + '</label>';
+    const chk = div.querySelector('input');
+    chk.addEventListener('change', async () => {
+      state.cfg.camposVisibles = state.cfg.camposVisibles || {};
+      state.cfg.camposVisibles[key] = chk.checked;
+      await guardarConfig({ camposVisibles: state.cfg.camposVisibles });
+      refrescarPreview();
+      toast(NOMBRES_CAMPO[key] + (chk.checked ? ' visible ✓' : ' oculto ✓'));
+    });
+    cont.appendChild(div);
+  }
+}
+
+function cargarAjustes(){
+  const c = state.cfg;
+  $('ajTitular').value = c.cuenta.titular || '';
+  $('ajBanco').value = c.cuenta.banco || '';
+  $('ajCuenta').value = c.cuenta.numero || '';
+  $('ajCiudad').value = c.cuenta.ciudad || '';
+  $('ajChkNum').checked = !!c.imprimirNumero;
+  $('ajChkCta').checked = !!c.imprimirCuenta;
+  $('ajMoneda').value = c.moneda || '';
+  $('ajSimbolo').value = c.simboloMoneda || '';
+  $('ajTextoOrden').value = c.textoOrden || '';
+  $('ajDelay').value = Math.round((c.loteDelayMs || 8000) / 1000);
+  $('ajSiguiente').value = c.siguiente_numero;
+  $('ajFechaFmt').value = c.fechaFormato === 'larga' ? 'larga' : 'numeros';
+  pintarCamposVisibles();
+  $('calOrient').value = String(c.orient);
+  $('calOffX').value = c.offsetX_mm;
+  $('calOffY').value = c.offsetY_mm;
+  $('calLargo').value = c.cheque.largo_mm;
+  $('calAncho').value = c.cheque.ancho_mm;
+  $('calFuente').value = c.fuente_mm;
+  $('calFuenteTipo').value = c.fuenteTipo || 'Courier New';
+    $('calMargen').value = isFinite(c.margenDerecha_mm) ? c.margenDerecha_mm : 0;
+  $('calAnchoImp').value = isFinite(c.anchoImpresion_mm) ? c.anchoImpresion_mm : 80;
+  $('calMontoAlinea').value = c.montoAlineacion === 'centro' ? 'centro' : (c.montoAlineacion === 'der' ? 'der' : 'izq');
+  $('calFirmaW').value = c.firma_ancho_mm;
+  $('calFirmaH').value = c.firma_alto_mm;
+  $('calImpresora').value = c.impresora;
+}
+
+$('btnGuardaAjustes').addEventListener('click', async () => {
+  await guardarConfig({
+    cuenta: {
+      titular: $('ajTitular').value.trim(),
+      banco: $('ajBanco').value.trim(),
+      numero: $('ajCuenta').value.trim(),
+      ciudad: $('ajCiudad').value.trim()
+    },
+    imprimirNumero: $('ajChkNum').checked,
+    imprimirCuenta: $('ajChkCta').checked,
+    moneda: $('ajMoneda').value.trim() || 'SOLES',
+    simboloMoneda: $('ajSimbolo').value.trim() || 'S/',
+    textoOrden: $('ajTextoOrden').value.trim(),
+    fechaFormato: $('ajFechaFmt').value === 'larga' ? 'larga' : 'numeros',
+    loteDelayMs: Math.max(2, parseInt($('ajDelay').value, 10) || 8) * 1000,
+    siguiente_numero: parseInt($('ajSiguiente').value, 10) || 1
+  });
+  toast('Ajustes guardados ✓');
+  refrescarPreview();
+  pintarLote();
+});
+
+async function guardarCalibracion(){
+  const largo = parseFloat($('calLargo').value);
+  const ancho = parseFloat($('calAncho').value);
+  if (!isFinite(largo) || largo <= 0){
+    toast('El largo debe ser un número mayor a cero.', true);
+    cargarAjustes();
+    return;
+  }
+  if (!isFinite(ancho) || ancho <= 0){
+    toast('El ancho debe ser un número mayor a cero.', true);
+    cargarAjustes();
+    return;
+  }
+  await guardarConfig({
+    orient: parseInt($('calOrient').value, 10) || 0,
+    offsetX_mm: parseFloat($('calOffX').value) || 0,
+    offsetY_mm: parseFloat($('calOffY').value) || 0,
+    cheque: {
+      largo_mm: largo,
+      ancho_mm: ancho
+    },
+    fuente_mm: parseFloat($('calFuente').value) || 4,
+    fuenteTipo: $('calFuenteTipo').value || 'Courier New',
+    margenDerecha_mm: (() => { const v = parseFloat($('calMargen').value); return isFinite(v) ? Math.max(0, Math.min(10, v)) : 0; })(),
+    anchoImpresion_mm: (() => { const v = parseFloat($('calAnchoImp').value); return isFinite(v) ? Math.max(40, Math.min(120, v)) : 80; })(),
+    montoAlineacion: ['izq','centro','der'].includes($('calMontoAlinea').value) ? $('calMontoAlinea').value : 'izq',
+    firma_ancho_mm: parseFloat($('calFirmaW').value) || 36,
+    firma_alto_mm: parseFloat($('calFirmaH').value) || 14,
+    impresora: $('calImpresora').value.trim() || 'EPSON TM-H6000VI Slip'
+  });
+  cargarAjustes();
+  actualizarLabelsAvance();
+  refrescarPreview();
+}
+
+$('ajFechaFmt').addEventListener('change', async () => {
+  await guardarConfig({ fechaFormato: $('ajFechaFmt').value === 'larga' ? 'larga' : 'numeros' });
+  refrescarPreview();
+  toast('Formato de fecha actualizado ✓');
+});
+$('calOrient').addEventListener('change', () => {
+  actualizarLabelsAvance();
+  refrescarPreview();
+});
+['calOrient','calOffX','calOffY','calLargo','calAncho','calFuente','calFuenteTipo','calFirmaW','calFirmaH','calImpresora','calMargen','calAnchoImp','calMontoAlinea'].forEach(id => {
+  $(id).addEventListener('change', guardarCalibracion);
+});
+document.querySelectorAll('[data-off]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const esX = btn.dataset.off === 'X';
+    const inp = esX ? $('calOffX') : $('calOffY');
+    inp.value = Math.round(((parseFloat(inp.value) || 0) + parseFloat(btn.dataset.d)) * 2) / 2;
+    guardarCalibracion();
+  });
+});
+
+function activarTab(nombre){
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
+  if (nombre === 'hist') cargarHistorial();
+  if (nombre === 'nuevo') refrescarPreview();
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));
+
+$('fMonto').addEventListener('input', () => {
+  if (!state.letraManual) $('fLetra').value = numeroALetras(parseFloat($('fMonto').value) || 0);
+  refrescarPreview();
+});
+$('fLetra').addEventListener('input', () => { state.letraManual = true; refrescarPreview(); });
+['fNumero','fFecha','fBenef','fConcepto'].forEach(id => $(id).addEventListener('input', refrescarPreview));
+
+async function iniciar(){
+  let r;
+  try {
+    r = await fetch('/api/config');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    state.cfg = await r.json();
+    try {
+      localStorage.setItem('cheque_cfg_backup', JSON.stringify({
+        posiciones: state.cfg.posiciones,
+        camposVisibles: state.cfg.camposVisibles,
+        fechaFormato: state.cfg.fechaFormato
+      }));
+    } catch (e) {}
+  } catch(e){
+    try {
+      const b = JSON.parse(localStorage.getItem('cheque_cfg_backup') || 'null');
+      if (b && b.posiciones){
+        state.cfg = Object.assign({
+          cheque:{largo_mm:700,ancho_mm:70}, posiciones:{}, camposVisibles:{}, cuenta:{},
+          simboloMoneda:'S/', moneda:'SOLES', imprimirCuenta:false, imprimirNumero:true,
+          margenDerecha_mm:0, montoAlineacion:'izq', anchoImpresion_mm:80,
+          siguiente_numero:1, orient:90, fuente_mm:4, offset:{x:0}, offsetX_mm:0, offsetY_mm:0,
+          firma_ancho_mm:36, firma_alto_mm:14, textoOrden:'', fechaFormato:'numeros',
+          impresora:'', dpi:160, loteDelayMs:8000
+        }, b);
+        toast('Servidor no responde — usando respaldo local de posiciones', true);
+      } else throw e;
+    } catch (e2){
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div style="background:#c62828;color:#fff;padding:16px 22px;font-size:15px;text-align:center;line-height:1.6">' +
+        '⛔ No se pudo conectar con el servidor local.<br>' +
+        'Cierra esta página y ejecuta <b>start.bat</b>, luego abre <b>http://localhost:3000</b> en el navegador. ' +
+        '(No abras index.html con doble clic.)</div>');
+      document.querySelectorAll('input,button,select,textarea').forEach(el => { el.disabled = true; });
+      return;
+    }
+  }
+  padFirma = crearPad($('padFirma'), $('btnFirmaImg'), $('btnFirmaLimpiar'), $('firmaFile'));
+  padLote = crearPad($('padLote'), $('btnLoteImg'), $('btnLoteLimpiar'), $('loteFile'));
+  $('fNumero').value = String(state.cfg.siguiente_numero);
+  $('fFecha').value = new Date().toISOString().slice(0,10);
+  $('lFecha').value = new Date().toISOString().slice(0,10);
+  cargarAjustes();
+  actualizarLabelsAvance();
+  pintarLote();
+  refrescarPreview();
+  refrescarEstado();
+  setInterval(refrescarEstado, 15000);
+}
+
+window.addEventListener('unhandledrejection', (e) => {
+  const m = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+  toast('Error: ' + m, true);
+});
+window.addEventListener('error', (e) => {
+  toast('Error: ' + e.message, true);
+});
+
+iniciar();
+</script>
+</body>
+</html>
