@@ -6,6 +6,7 @@
   body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fondo);color:var(--texto)}
   header{background:var(--azul);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   header h1{font-size:18px;margin:0;font-weight:600}
+  .verBadge{font-size:11.5px;font-weight:700;background:#fff;color:var(--azulOsc);padding:3px 10px;border-radius:12px;vertical-align:middle;letter-spacing:.3px}
   #estado{font-size:13px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px}
   nav{display:flex;background:#fff;border-bottom:1px solid var(--borde);padding:0 12px;gap:2px;overflow-x:auto}
   nav button{border:none;background:none;padding:13px 18px;font-size:14.5px;cursor:pointer;color:#556;border-bottom:3px solid transparent;white-space:nowrap}
