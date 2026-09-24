@@ -22,8 +22,13 @@ const HIST_PATH = path.join(__dirname, 'historial.json');
 const NUM_PATH = path.join(__dirname, 'numeros_usados.json');
 const TMP_DIR = path.join(__dirname, 'tmp');
 const PS_PATH = path.join(__dirname, 'raw_print.ps1');
+const BACKUP_DIR = path.join(__dirname, 'backups');
+const FIRMAS_DIR = path.join(__dirname, 'firmas');
+const MAX_BACKUPS_AUTO = 60;
 
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+if (!fs.existsSync(FIRMAS_DIR)) fs.mkdirSync(FIRMAS_DIR, { recursive: true });
 
 const DEFAULTS = {
   impresora: 'EPSON TM-H6000VI Slip',
@@ -219,6 +224,79 @@ function registrarNumero(n, fechaISO) {
   fs.writeFileSync(NUM_PATH, JSON.stringify(nums, null, 2), 'utf8');
 }
 
+function guardarFirma(dataUrl) {
+  const m = /^data:image\/(png|jpe?g);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
+  if (!m) return '';
+  const ext = m[1] === 'png' ? 'png' : 'jpg';
+  const nombre = `f_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  fs.writeFileSync(path.join(FIRMAS_DIR, nombre), Buffer.from(m[2], 'base64'));
+  return nombre;
+}
+
+function leerFirma(nombre) {
+  const base = path.basename(String(nombre || ''));
+  if (!/^f_\d+_[a-z0-9]+\.(png|jpg)$/.test(base)) return null;
+  const p = path.join(FIRMAS_DIR, base);
+  if (!fs.existsSync(p)) return null;
+  const mime = base.endsWith('.jpg') ? 'image/jpeg' : 'image/png';
+  return `data:${mime};base64,` + fs.readFileSync(p).toString('base64');
+}
+
+function timestampBackup() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function hacerBackup(tipo) {
+  try {
+    let config = null;
+    try { config = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); } catch (e) {}
+    const historial = loadHistorial();
+    const numeros = loadNumeros();
+    const firmas = {};
+    for (const h of historial) {
+      if (h.firma && !firmas[h.firma]) {
+        const d = leerFirma(h.firma);
+        if (d) firmas[path.basename(h.firma)] = d;
+      }
+    }
+    const contenido = { version: 1, fecha: new Date().toISOString(), tipo, config, historial, numeros, firmas };
+    const nombre = `${tipo === 'manual' ? 'manual' : 'auto'}_${timestampBackup()}.json`;
+    fs.writeFileSync(path.join(BACKUP_DIR, nombre), JSON.stringify(contenido), 'utf8');
+    if (tipo !== 'manual') rotarBackups();
+    return nombre;
+  } catch (e) {
+    console.error('Backup falló:', e.message);
+    return null;
+  }
+}
+
+function rotarBackups() {
+  try {
+    const autos = fs.readdirSync(BACKUP_DIR)
+      .filter((f) => f.startsWith('auto_') && f.endsWith('.json'))
+      .sort();
+    while (autos.length > MAX_BACKUPS_AUTO) {
+      fs.unlinkSync(path.join(BACKUP_DIR, autos.shift()));
+    }
+  } catch (e) {}
+}
+
+function listarBackups() {
+  try {
+    return fs.readdirSync(BACKUP_DIR)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => {
+        const st = fs.statSync(path.join(BACKUP_DIR, f));
+        return { nombre: f, fecha: st.mtime.toISOString(), tamano: st.size, tipo: f.startsWith('manual_') ? 'manual' : 'auto' };
+      })
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+  } catch (e) {
+    return [];
+  }
+}
+
 function rawPrint(filePath, printerName) {
   return new Promise((resolve, reject) => {
     execFile(
@@ -365,11 +443,76 @@ app.post('/api/historial/anular', (req, res) => {
     }
   }
   res.json({ status: 'ok', libre, numero: n });
+  setTimeout(() => hacerBackup('auto'), 0);
 });
 
 app.get('/api/numeros', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json(loadNumeros());
+});
+
+app.get('/api/firma/:archivo', (req, res) => {
+  const d = leerFirma(req.params.archivo);
+  if (!d) {
+    res.status(404).json({ status: 'error', message: 'Firma no encontrada' });
+    return;
+  }
+  res.json({ dataUrl: d });
+});
+
+app.get('/api/respaldos', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(listarBackups());
+});
+
+app.post('/api/respaldos', (req, res) => {
+  const nombre = hacerBackup('manual');
+  if (!nombre) {
+    res.status(500).json({ status: 'error', message: 'No se pudo crear el respaldo' });
+    return;
+  }
+  res.json({ status: 'ok', nombre });
+});
+
+app.post('/api/respaldos/restaurar', (req, res) => {
+  const nombre = path.basename(String((req.body && req.body.nombre) || ''));
+  if (!/^((auto|manual)_\d{4}-\d{2}-\d{2}_\d{6})\.json$/.test(nombre)) {
+    res.status(400).json({ status: 'error', message: 'Nombre de respaldo inválido' });
+    return;
+  }
+  const p = path.join(BACKUP_DIR, nombre);
+  if (!fs.existsSync(p)) {
+    res.status(404).json({ status: 'error', message: 'Respaldo no encontrado' });
+    return;
+  }
+  let contenido;
+  try {
+    contenido = JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (e) {
+    res.status(500).json({ status: 'error', message: 'Respaldo ilegible' });
+    return;
+  }
+  if (!contenido || !Array.isArray(contenido.historial)) {
+    res.status(400).json({ status: 'error', message: 'Respaldo con estructura inválida' });
+    return;
+  }
+  try {
+    fs.writeFileSync(HIST_PATH, JSON.stringify(contenido.historial, null, 2), 'utf8');
+    if (contenido.config) fs.writeFileSync(CFG_PATH, JSON.stringify(contenido.config, null, 2), 'utf8');
+    if (contenido.numeros) fs.writeFileSync(NUM_PATH, JSON.stringify(contenido.numeros, null, 2), 'utf8');
+    if (contenido.firmas && typeof contenido.firmas === 'object') {
+      for (const [nom, dataUrl] of Object.entries(contenido.firmas)) {
+        const base = path.basename(nom);
+        if (!/^f_\d+_[a-z0-9]+\.(png|jpg)$/.test(base)) continue;
+        const m = /^data:image\/(png|jpe?g);base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl));
+        if (m) fs.writeFileSync(path.join(FIRMAS_DIR, base), Buffer.from(m[2], 'base64'));
+      }
+    }
+  } catch (e) {
+    res.status(500).json({ status: 'error', message: 'Error al restaurar: ' + e.message });
+    return;
+  }
+  res.json({ status: 'ok', message: `Respaldo ${nombre} restaurado` });
 });
 
 app.get('/api/impresora', async (req, res) => {
@@ -384,7 +527,8 @@ app.post('/api/imprimir', (req, res) => {
   }
 
   const numNorm = cheque ? normNum(cheque.numero) : '';
-  if (numNorm) {
+  const esReimpresion = !!(cheque && cheque.reimpresion);
+  if (numNorm && !esReimpresion) {
     const usado = loadNumeros()[numNorm];
     if (usado) {
       const f = usado ? new Date(usado) : null;
@@ -424,8 +568,11 @@ app.post('/api/imprimir', (req, res) => {
         const fechaCheque = cheque.fechaCheque
           ? String(cheque.fechaCheque).slice(0, 10)
           : ahora.slice(0, 10);
-        if (numNorm) registrarNumero(numNorm, ahora);
-        appendHistorial({
+        if (numNorm && !esReimpresion) registrarNumero(numNorm, ahora);
+        let firmaRuta = '';
+        if (cheque.firmaArchivo) firmaRuta = path.basename(String(cheque.firmaArchivo));
+        else if (typeof cheque.firma === 'string' && cheque.firma.startsWith('data:image/')) firmaRuta = guardarFirma(cheque.firma);
+        const entrada = {
           fecha_impre: ahora,
           fecha_cheque: fechaCheque,
           estado: 'impreso',
@@ -434,7 +581,11 @@ app.post('/api/imprimir', (req, res) => {
           monto: cheque.monto ?? '',
           letra: cheque.letra ?? '',
           concepto: cheque.concepto ?? ''
-        });
+        };
+        if (esReimpresion) entrada.tipo = 'reimpresion';
+        if (firmaRuta) entrada.firma = 'firmas/' + firmaRuta;
+        appendHistorial(entrada);
+        setTimeout(() => hacerBackup('auto'), 0);
       }
       res.json({ status: 'ok', message: `Enviado a ${cfg.impresora}`, detalle: out });
     })

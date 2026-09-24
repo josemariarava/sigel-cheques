@@ -244,7 +244,8 @@ $('btnImprimir').addEventListener('click', async () => {
       beneficiario: data.beneficiario,
       monto: data.montoText,
       letra: data.letraText,
-      concepto: data.concepto
+      concepto: data.concepto,
+      firma: data.firma || null
     });
     if (num) state.numerosUsados[normNum(num)] = new Date().toISOString();
     toast('Cheque enviado a la impresora ✓');
@@ -718,7 +719,7 @@ $('btnLote').addEventListener('click', async () => {
     const fechaCheque = $('lFecha').value;
     for (let i = 0; i < 3; i++){
       const c = cheques[i];
-      await imprimirCheque(c, { numero: c._numero, fechaCheque, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto });
+      await imprimirCheque(c, { numero: c._numero, fechaCheque, beneficiario: c.beneficiario, monto: c.montoText, letra: c.letraText, concepto: c._concepto, firma: c.firma || null });
       if (normNum(c._numero)) state.numerosUsados[normNum(c._numero)] = new Date().toISOString();
       marcarSiguienteUsado(c._numero);
       if (i < 2){
@@ -780,15 +781,17 @@ function fmtMontoNum(v){
 function renderHistorial(){
   if (!state.historial) state.historial = [];
   const hist = state.historial;
-  let imp = 0, anu = 0, total = 0;
+  let imp = 0, anu = 0, rei = 0, total = 0;
   for (const h of hist){
     if (estadoDe(h) === 'anulado') anu++;
+    else if (h.tipo === 'reimpresion') rei++;
     else { imp++; total += montoNum(h.monto); }
   }
   const sim = (state.cfg && state.cfg.simboloMoneda) || 'S/';
   $('histStats').innerHTML =
     '<div class="estCaja"><b>Impresos</b>' + imp + '</div>' +
     '<div class="estCaja"><b>Anulados</b>' + anu + '</div>' +
+    '<div class="estCaja"><b>Reimpresos</b>' + rei + '</div>' +
     '<div class="estCaja"><b>Monto total</b>' + sim + ' ' + fmtMontoNum(total) + '</div>';
 
   const filtro = (($('histBuscar').value || '')).trim().toLowerCase();
@@ -805,6 +808,8 @@ function renderHistorial(){
   $('histVacio').style.display = visibles.length ? 'none' : 'block';
   for (const h of visibles){
     const anulado = estadoDe(h) === 'anulado';
+    const esReimp = h.tipo === 'reimpresion';
+    const badge = esReimp && !anulado ? 'reimpreso' : estadoDe(h);
     const tr = document.createElement('tr');
     if (anulado) tr.className = 'filaAnulada';
     const fc = new Date(h.fecha_cheque || h.fecha);
@@ -816,14 +821,15 @@ function renderHistorial(){
         (hora ? '<div style="font-size:11px;color:#8a97a8;font-weight:400">' + hora + '</div>' : '') +
       '</td>' +
       '<td>' + escHtml(h.numero) +
-        '<div><span class="badgeEstado ' + estadoDe(h) + '">' + estadoDe(h) + '</span></div>' +
+        '<div><span class="badgeEstado ' + badge + '">' + badge + '</span></div>' +
       '</td>' +
       '<td>' + escHtml(h.beneficiario) + '</td>' +
       '<td>' + escHtml(h.monto) + '</td>' +
       '<td>' + escHtml(h.concepto) + '</td>' +
       '<td style="white-space:nowrap">' +
         '<button class="btn sec" data-acc="cargar" style="padding:5px 10px;font-size:12.5px">Cargar</button> ' +
-        (anulado ? '' : '<button class="btn peligro" data-acc="anular" style="padding:5px 10px;font-size:12.5px">Anular</button>') +
+        (anulado ? '' : '<button class="btn" data-acc="reimprimir" style="padding:5px 10px;font-size:12.5px">Reimprimir</button> ') +
+        (anulado || esReimp ? '' : '<button class="btn peligro" data-acc="anular" style="padding:5px 10px;font-size:12.5px">Anular</button>') +
       '</td>';
     tr.querySelector('[data-acc=cargar]').addEventListener('click', () => {
       $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
@@ -836,9 +842,53 @@ function renderHistorial(){
       activarTab('nuevo');
       refrescarPreview();
     });
+    const btnRei = tr.querySelector('[data-acc=reimprimir]');
+    if (btnRei) btnRei.addEventListener('click', () => reimprimirCheque(h));
     const btnAnu = tr.querySelector('[data-acc=anular]');
     if (btnAnu) btnAnu.addEventListener('click', () => anularCheque(h));
     body.appendChild(tr);
+  }
+}
+
+async function reimprimirCheque(h){
+  const n = normNum(h.numero) || '(sin número)';
+  const ok = await pedirConfirmacion('¿Reimprimir el cheque N° ' + n + ' de ' + (h.beneficiario || '—') + '? Se usará el mismo número (no se consume uno nuevo).');
+  if (!ok) return;
+  try {
+    let firmaData = null;
+    if (h.firma){
+      try {
+        const rf = await fetch('/api/firma/' + encodeURIComponent(String(h.firma).split('/').pop()));
+        const rj = await rf.json();
+        if (rf.ok && rj.dataUrl) firmaData = rj.dataUrl;
+      } catch (e) { firmaData = null; }
+    }
+    const cfg = state.cfg;
+    const data = {
+      fechaText: fechaLarga(String(h.fecha_cheque || '').slice(0, 10), (cfg.cuenta && cfg.cuenta.ciudad) || '', cfg.fechaFormato),
+      numeroText: normNum(h.numero) ? 'N° ' + normNum(h.numero) : '',
+      beneficiario: h.beneficiario || '',
+      montoText: h.monto || '',
+      letraText: h.letra || '',
+      concepto: h.concepto || '',
+      cuentaText: (cfg.imprimirCuenta && cfg.cuenta.numero) ? 'CTA. ' + cfg.cuenta.numero : '',
+      firma: firmaData
+    };
+    await imprimirCheque(data, {
+      numero: h.numero || '',
+      fechaCheque: String(h.fecha_cheque || '').slice(0, 10),
+      beneficiario: h.beneficiario || '',
+      monto: h.monto || '',
+      letra: h.letra || '',
+      concepto: h.concepto || '',
+      reimpresion: true,
+      firmaArchivo: h.firma || ''
+    });
+    toast('Reimpresión enviada a la impresora ✓');
+    refrescarEstado();
+    await cargarHistorial();
+  } catch(e){
+    toast(e.message, true);
   }
 }
 
@@ -876,6 +926,64 @@ async function cargarHistorial(){
 }
 
 $('histBuscar').addEventListener('input', renderHistorial);
+
+async function cargarRespaldos(){
+  try {
+    const r = await fetch('/api/respaldos');
+    const lista = await r.json();
+    const cont = $('listaRespaldos');
+    if (!Array.isArray(lista) || !lista.length){
+      cont.innerHTML = '<div class="ayuda">Sin respaldos todavía. El primero se crea al imprimir un cheque.</div>';
+      return;
+    }
+    cont.innerHTML = lista.map(b =>
+      '<div class="filaBackup">' +
+        '<span class="filaBackupNom">' + (b.tipo === 'manual' ? '📦' : '🔄') + ' ' + escHtml(b.nombre) + '</span>' +
+        '<span class="filaBackupTam">' + Math.max(1, Math.round(b.tamano / 1024)) + ' KB</span>' +
+        '<button class="btn peligro" data-resp="' + escHtml(b.nombre) + '" style="padding:5px 10px;font-size:12.5px">Restaurar</button>' +
+      '</div>').join('');
+    cont.querySelectorAll('[data-resp]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const nombre = btn.dataset.resp;
+        const ok = await pedirConfirmacion('¿Restaurar el respaldo ' + nombre + '? Se reemplazarán historial, configuración, números y firmas. La página se recargará.');
+        if (!ok) return;
+        btn.disabled = true;
+        try {
+          const r2 = await fetch('/api/respaldos/restaurar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre })
+          });
+          const j = await r2.json().catch(() => ({}));
+          if (!r2.ok) throw new Error(j.message || 'No se pudo restaurar');
+          toast('Respaldo restaurado ✓ Recargando…');
+          setTimeout(() => location.reload(), 900);
+        } catch(e){
+          toast(e.message, true);
+          btn.disabled = false;
+        }
+      });
+    });
+  } catch(e){
+    $('listaRespaldos').innerHTML = '<div class="ayuda">No se pudo cargar la lista de respaldos.</div>';
+  }
+}
+
+$('btnBackupAhora').addEventListener('click', async () => {
+  const btn = $('btnBackupAhora');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/respaldos', { method: 'POST' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.message || 'No se pudo crear el respaldo');
+    toast('Respaldo creado: ' + j.nombre + ' ✓');
+    cargarRespaldos();
+  } catch(e){
+    toast(e.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 function pintarCamposVisibles(){
   const cont = $('camposVisibles');
@@ -1013,6 +1121,7 @@ function activarTab(nombre){
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
   if (nombre === 'hist') cargarHistorial();
+  if (nombre === 'ajustes') cargarRespaldos();
   if (nombre === 'nuevo') refrescarPreview();
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));
