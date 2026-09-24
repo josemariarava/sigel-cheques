@@ -1,4 +1,0 @@
-@echo off
-echo HOLA PRUEBA DE IMPRESION > COM3:
-echo.
-echo EXIT CODE: %ERRORLEVEL%
