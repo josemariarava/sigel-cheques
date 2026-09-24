@@ -9,7 +9,7 @@
 <body>
 
 <header>
-  <h1>🏦 Impresión de Cheques — Epson TM-H6000VI <span style="font-weight:400;opacity:.85">(Slip)</span> <span class="verBadge">SIGEL v2-en-desarrollo</span></h1>
+  <h1>🏦 Impresión de Cheques — Epson TM-H6000VI <span class="font-normal opacity-85">(Slip)</span> <span class="verBadge">SIGEL v2-en-desarrollo</span></h1>
   <div id="estado"><span class="punto mal"></span>consultando…</div>
 </header>
 
@@ -64,7 +64,7 @@
     </div>
 
     <div class="panel" id="previewWrap">
-      <h2>Vista previa <span style="font-weight:400;font-size:12.5px;color:#68788c">(tal como se sostiene el cheque)</span></h2>
+      <h2>Vista previa <span class="font-normal text-[12.5px] text-[#68788c]">(tal como se sostiene el cheque)</span></h2>
       <div id="previewScroll">
         <canvas id="preview" width="680" height="280"></canvas>
       </div>
@@ -72,21 +72,21 @@
         <button type="button" class="btn sec" id="btnZoomOut" title="Alejar">−</button>
         <button type="button" class="btn sec" id="btnZoomIn" title="Acercar">+</button>
         <button type="button" class="btn sec" id="btnZoomFit">Ajustar</button>
-        <span id="zoomPct" style="font-size:12.5px;color:#68788c;min-width:44px;display:inline-block">100%</span>
-        <span style="flex:1"></span>
-        <span class="checkline" style="margin:0;gap:6px"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" style="margin:0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
-        <span class="checkline" style="margin:0;gap:6px"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" style="margin:0">Guías</label></span>
+        <span id="zoomPct" class="text-[12.5px] text-[#68788c] min-w-[44px] inline-block">100%</span>
+        <span class="flex-1"></span>
+        <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" class="m-0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
+        <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" class="m-0">Guías</label></span>
       </div>
       <div id="selInfo"></div>
       <div id="pvInfo" class="ayuda"></div>
       <div class="ayuda">Rueda = zoom · flechas ↑↓←→ = mover campo (1 mm; Shift = 5 mm; Alt = 0.5 mm) · <b>+</b>/<b>−</b> = tamaño de letra del campo · doble clic = acercar al campo · arrastre o X/Y en Calibración · se guarda solo.</div>
       <div class="subPanel">
         <h3>Posiciones de campos (mm)</h3>
-        <div style="margin-bottom:10px">
-          <button type="button" class="btn sec" id="btnAjustarLinea" style="width:100%">✂ Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
-          <div class="ayuda" style="margin-top:6px">Selecciona un campo en la vista previa o en la grilla, luego pulsa el botón. O usa <b>+</b> / <b>−</b> con el campo seleccionado para achicar/agrandar a mano (Shift = ±0.5 mm).</div>
+        <div class="mb-2.5">
+          <button type="button" class="btn sec w-full" id="btnAjustarLinea">✂ Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
+          <div class="ayuda mt-1.5">Selecciona un campo en la vista previa o en la grilla, luego pulsa el botón. O usa <b>+</b> / <b>−</b> con el campo seleccionado para achicar/agrandar a mano (Shift = ±0.5 mm).</div>
         </div>
-        <div id="posGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px"></div>
+        <div id="posGrid" class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2"></div>
       </div>
     </div>
   </div>
@@ -95,7 +95,7 @@
 <section id="tab-lote" class="tab">
   <div class="panel">
     <h2>Lote de 3 cheques (uno tras otro en la ranura)</h2>
-    <div class="fila2" style="max-width:420px">
+    <div class="fila2 max-w-[420px]">
       <div>
         <label>Fecha común del lote</label>
         <input type="date" id="lFecha">
@@ -106,17 +106,17 @@
       </div>
     </div>
 
-    <div class="loteGrid" id="loteGrid" style="margin-top:14px"></div>
+    <div class="loteGrid mt-3.5" id="loteGrid"></div>
 
-    <label style="margin-top:16px">Firma del lote (común a los 3)</label>
-    <canvas class="pad" id="padLote" width="720" height="200" style="max-width:560px"></canvas>
+    <label class="mt-4">Firma del lote (común a los 3)</label>
+    <canvas class="pad max-w-[560px]" id="padLote" width="720" height="200"></canvas>
     <div class="padTools">
       <button class="btn sec" id="btnLoteImg">Subir imagen</button>
       <button class="btn sec" id="btnLoteLimpiar">Limpiar</button>
       <input type="file" id="loteFile" accept="image/*" hidden>
     </div>
 
-    <button class="btn btnAncho" id="btnLote" style="max-width:420px">🖨️ Imprimir los 3 cheques</button>
+    <button class="btn btnAncho max-w-[420px]" id="btnLote">🖨️ Imprimir los 3 cheques</button>
     <div class="ayuda">Se imprime el 1.º, luego te pedirá retirarlo y colocar el siguiente (espera configurable en Ajustes).</div>
   </div>
 </section>
@@ -129,9 +129,9 @@
 
       <div class="subPanel">
         <h2>Pruebas de impresión</h2>
-        <button class="btn" id="btnGrilla" style="width:100%;margin-bottom:10px">🧱 Imprimir grilla (10 mm + marcas de esquina 2/5/10)</button>
-        <button class="btn sec" id="btnAvance" style="width:100%;margin-bottom:10px">📏 Test avance — barra a todo el largo</button>
-        <button class="btn sec" id="btnPrueba" style="width:100%">🧪 Imprimir cheque de prueba</button>
+        <button class="btn w-full mb-2.5" id="btnGrilla">🧱 Imprimir grilla (10 mm + marcas de esquina 2/5/10)</button>
+        <button class="btn sec w-full mb-2.5" id="btnAvance">📏 Test avance — barra a todo el largo</button>
+        <button class="btn sec w-full" id="btnPrueba">🧪 Imprimir cheque de prueba</button>
         <div class="ayuda">La grilla muestra cruces cada 10 mm. El <b>test avance</b> pinta una banda negra en el borde de entrada y otra en el <b>FIN</b> del largo configurado: si el FIN no cae en el borde real del papel, ajusta Largo/Ancho (el eje de avance) hasta que coincida.</div>
       </div>
 
@@ -235,7 +235,7 @@
   <div class="panel">
     <h2>Historial de cheques impresos</h2>
     <div id="histStats" class="histStats"></div>
-    <input type="text" id="histBuscar" placeholder="Buscar por N°, beneficiario, monto, concepto o fecha…" style="margin:12px 0 6px">
+    <input type="text" id="histBuscar" placeholder="Buscar por N°, beneficiario, monto, concepto o fecha…" class="mt-3 mb-1.5">
     <table>
       <thead><tr><th>Fecha</th><th>N°</th><th>Beneficiario</th><th>Monto</th><th>Concepto</th><th></th></tr></thead>
       <tbody id="histBody"></tbody>
@@ -245,7 +245,7 @@
 </section>
 
 <section id="tab-ajustes" class="tab">
-  <div class="panel" style="max-width:760px">
+  <div class="panel max-w-[760px]">
     <h2>Datos de la cuenta y del titular</h2>
     <div class="fila2">
       <div><label>Titular / cuenta</label><input type="text" id="ajTitular"></div>
@@ -256,8 +256,8 @@
       <div><label>Ciudad (para la línea de fecha)</label><input type="text" id="ajCiudad"></div>
     </div>
 
-    <div class="checkline"><input type="checkbox" id="ajChkNum"><label for="ajChkNum" style="margin:0">Imprimir N° de cheque en el cuerpo</label></div>
-    <div class="checkline"><input type="checkbox" id="ajChkCta"><label for="ajChkCta" style="margin:0">Imprimir N° de cuenta en el cuerpo</label></div>
+    <div class="checkline"><input type="checkbox" id="ajChkNum"><label for="ajChkNum" class="m-0">Imprimir N° de cheque en el cuerpo</label></div>
+    <div class="checkline"><input type="checkbox" id="ajChkCta"><label for="ajChkCta" class="m-0">Imprimir N° de cuenta en el cuerpo</label></div>
 
     <div class="separador"></div>
     <h2>Fecha en el cheque</h2>
@@ -269,8 +269,8 @@
 
     <div class="separador"></div>
     <h2>Campos que van en el cheque</h2>
-    <div class="ayuda" style="margin-top:0">Marca solo los que quieras imprimir. Los desmarcados no se ven en la vista previa ni salen en la impresora.</div>
-    <div id="camposVisibles" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px"></div>
+    <div class="ayuda mt-0">Marca solo los que quieras imprimir. Los desmarcados no se ven en la vista previa ni salen en la impresora.</div>
+    <div id="camposVisibles" class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2 mt-2.5"></div>
 
     <div class="separador"></div>
     <h2>Moneda y textos</h2>
@@ -296,8 +296,8 @@
     <div class="separador"></div>
     <h2>Respaldos</h2>
     <div class="ayuda">Se crea un respaldo automático tras cada cheque impreso o anulado. Aquí puedes crear uno manual o restaurar uno anterior (historial, configuración, números y firmas).</div>
-    <button class="btn" id="btnBackupAhora" style="margin-top:10px">📦 Respaldar ahora</button>
-    <div id="listaRespaldos" style="margin-top:12px"></div>
+    <button class="btn mt-2.5" id="btnBackupAhora">📦 Respaldar ahora</button>
+    <div id="listaRespaldos" class="mt-3"></div>
   </div>
 </section>
 

@@ -30,6 +30,7 @@
   .btn.peligro{background:var(--mal)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btnAncho{width:100%;margin-top:16px}
+  .btnPeq{padding:5px 10px;font-size:12.5px}
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
   .chip{font-size:12px;background:#eef3f9;border:1px solid var(--borde);border-radius:14px;padding:3px 10px}
   #previewWrap{position:relative}

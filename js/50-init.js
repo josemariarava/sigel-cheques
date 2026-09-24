@@ -27,7 +27,7 @@ async function iniciar(){
       } else throw e;
     } catch (e2){
       document.body.insertAdjacentHTML('afterbegin',
-        '<div style="background:#c62828;color:#fff;padding:16px 22px;font-size:15px;text-align:center;line-height:1.6">' +
+        '<div class="bg-[#c62828] text-white p-[16px_22px] text-[15px] text-center leading-[1.6]">' +
         '⛔ No se pudo conectar con el servidor local.<br>' +
         'Cierra esta página y ejecuta <b>start.bat</b>, luego abre <b>http://localhost:3000</b> en el navegador. ' +
         '(No abras index.html con doble clic.)</div>');

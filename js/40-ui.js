@@ -538,10 +538,10 @@ function pintarPosGrid(){
     const oculto = vis[key] === false;
     const fVal = (pos.fuente_mm >= 1 && pos.fuente_mm <= 8) ? pos.fuente_mm : '';
     const div = document.createElement('div');
-    div.style.cssText = 'font-size:12px;background:' + (oculto ? '#f1f3f6' : '#f6f9fc') + ';border:1px solid #d7dee8;border-radius:6px;padding:6px 8px' + (oculto ? ';opacity:.55' : '');
-    div.innerHTML = '<b style="color:#0b5cad">' + NOMBRES_CAMPO[key] + '</b> <label style="float:right;font-weight:400;cursor:pointer"><input type="checkbox" class="pgVis"' + (oculto ? '' : ' checked') + ' style="width:auto"> ver</label><br>' +
-      'X <input type="number" class="pgX" step="0.5" value="' + pos.x + '" style="width:52px"> Y <input type="number" class="pgY" step="0.5" value="' + pos.y + '" style="width:52px"><br>' +
-      'Letra <input type="number" class="pgF" step="0.1" min="1" max="8" value="' + fVal + '" placeholder="global" style="width:52px"> mm';
+    div.className = 'text-xs border border-[#d7dee8] rounded-md p-[6px_8px] ' + (oculto ? 'bg-[#f1f3f6] opacity-55' : 'bg-[#f6f9fc]');
+    div.innerHTML = '<b class="text-[#0b5cad]">' + NOMBRES_CAMPO[key] + '</b> <label class="float-right font-normal cursor-pointer"><input type="checkbox" class="pgVis w-auto"' + (oculto ? '' : ' checked') + '> ver</label><br>' +
+      'X <input type="number" class="pgX w-[52px]" step="0.5" value="' + pos.x + '"> Y <input type="number" class="pgY w-[52px]" step="0.5" value="' + pos.y + '"><br>' +
+      'Letra <input type="number" class="pgF w-[52px]" step="0.1" min="1" max="8" value="' + fVal + '" placeholder="global"> mm';
     const ix = div.querySelector('.pgX');
     const iy = div.querySelector('.pgY');
     const iF = div.querySelector('.pgF');
@@ -632,7 +632,7 @@ function pintarLote(){
       '<label>Beneficiario</label><input type="text" data-l="benef" data-i="' + i + '" placeholder="Beneficiario">' +
       '<label>Monto</label><input type="number" data-l="monto" data-i="' + i + '" step="0.01" min="0">' +
       '<label>Concepto</label><input type="text" data-l="concepto" data-i="' + i + '" placeholder="Concepto">' +
-      '<div class="letraAuto" data-letra="' + i + '" style="font-size:11.5px;color:#68788c;margin-top:6px;min-height:28px"></div>';
+      '<div class="letraAuto text-[11.5px] text-[#68788c] mt-1.5 min-h-[28px]" data-letra="' + i + '"></div>';
     grid.appendChild(div);
   }
   const primero = state.cfg.siguiente_numero;
@@ -818,7 +818,7 @@ function renderHistorial(){
     const hora = isNaN(fi) ? '' : fi.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'});
     tr.innerHTML =
       '<td>' + escHtml(fch) +
-        (hora ? '<div style="font-size:11px;color:#8a97a8;font-weight:400">' + hora + '</div>' : '') +
+        (hora ? '<div class="text-[11px] text-[#8a97a8] font-normal">' + hora + '</div>' : '') +
       '</td>' +
       '<td>' + escHtml(h.numero) +
         '<div><span class="badgeEstado ' + badge + '">' + badge + '</span></div>' +
@@ -826,10 +826,10 @@ function renderHistorial(){
       '<td>' + escHtml(h.beneficiario) + '</td>' +
       '<td>' + escHtml(h.monto) + '</td>' +
       '<td>' + escHtml(h.concepto) + '</td>' +
-      '<td style="white-space:nowrap">' +
-        '<button class="btn sec" data-acc="cargar" style="padding:5px 10px;font-size:12.5px">Cargar</button> ' +
-        (anulado ? '' : '<button class="btn" data-acc="reimprimir" style="padding:5px 10px;font-size:12.5px">Reimprimir</button> ') +
-        (anulado || esReimp ? '' : '<button class="btn peligro" data-acc="anular" style="padding:5px 10px;font-size:12.5px">Anular</button>') +
+      '<td class="whitespace-nowrap">' +
+        '<button class="btn sec btnPeq" data-acc="cargar">Cargar</button> ' +
+        (anulado ? '' : '<button class="btn btnPeq" data-acc="reimprimir">Reimprimir</button> ') +
+        (anulado || esReimp ? '' : '<button class="btn peligro btnPeq" data-acc="anular">Anular</button>') +
       '</td>';
     tr.querySelector('[data-acc=cargar]').addEventListener('click', () => {
       $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
@@ -940,7 +940,7 @@ async function cargarRespaldos(){
       '<div class="filaBackup">' +
         '<span class="filaBackupNom">' + (b.tipo === 'manual' ? '📦' : '🔄') + ' ' + escHtml(b.nombre) + '</span>' +
         '<span class="filaBackupTam">' + Math.max(1, Math.round(b.tamano / 1024)) + ' KB</span>' +
-        '<button class="btn peligro" data-resp="' + escHtml(b.nombre) + '" style="padding:5px 10px;font-size:12.5px">Restaurar</button>' +
+        '<button class="btn peligro btnPeq" data-resp="' + escHtml(b.nombre) + '">Restaurar</button>' +
       '</div>').join('');
     cont.querySelectorAll('[data-resp]').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -993,9 +993,9 @@ function pintarCamposVisibles(){
   for (const key of CAMPOS){
     const on = vis[key] !== false;
     const div = document.createElement('div');
-    div.style.cssText = 'font-size:13px;background:#f6f9fc;border:1px solid #d7dee8;border-radius:6px;padding:7px 9px;display:flex;align-items:center;gap:7px';
+    div.className = 'text-[13px] bg-[#f6f9fc] border border-[#d7dee8] rounded-md p-[7px_9px] flex items-center gap-[7px]';
     const id = 'cv_' + key;
-    div.innerHTML = '<input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><label for="' + id + '" style="margin:0;cursor:pointer">' + NOMBRES_CAMPO[key] + '</label>';
+    div.innerHTML = '<input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><label for="' + id + '" class="m-0 cursor-pointer">' + NOMBRES_CAMPO[key] + '</label>';
     const chk = div.querySelector('input');
     chk.addEventListener('change', async () => {
       state.cfg.camposVisibles = state.cfg.camposVisibles || {};
