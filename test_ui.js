@@ -3,9 +3,9 @@ const path = require('path');
 
 const BASE = 'C:\\Users\\jmramirez\\Pictures\\prueba';
 const html = fs.readFileSync(path.join(BASE, 'index.html'), 'utf8');
-const m = html.match(/<script>([\s\S]*)<\/script>/);
-if (!m) { console.log('NO SCRIPT'); process.exit(1); }
-const codigo = m[1];
+const srcs = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+if (!srcs.length) { console.log('NO SCRIPT SRC'); process.exit(1); }
+const codigo = srcs.map(s => fs.readFileSync(path.join(BASE, s.replace(/^\//, '')), 'utf8')).join('\n;\n');
 
 const errores = [];
 process.on('uncaughtException', (e) => { errores.push('UNCAUGHT: ' + e.stack); });

@@ -15,7 +15,7 @@
   "moneda": "SOLES",
   "simboloMoneda": "S/",
   "loteDelayMs": 8000,
-  "siguiente_numero": 42,
+  "siguiente_numero": 46,
   "imprimirNumero": true,
   "imprimirCuenta": true,
   "cuenta": {
@@ -67,8 +67,8 @@
       "fuente_mm": 0
     },
     "letra": {
-      "x": 17,
-      "y": 28.5,
+      "x": 15.5,
+      "y": 27.5,
       "fuente_mm": 0
     },
     "concepto": {

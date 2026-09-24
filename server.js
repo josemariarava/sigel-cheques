@@ -266,6 +266,10 @@ function enviarIndex(req, res){
 app.get('/', enviarIndex);
 app.get('/index.html', enviarIndex);
 
+const staticOpts = { setHeaders: (res) => res.set('Cache-Control', 'no-store') };
+app.use('/css', express.static(path.join(__dirname, 'css'), staticOpts));
+app.use('/js', express.static(path.join(__dirname, 'js'), staticOpts));
+
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json(loadConfig());
