@@ -5,7 +5,9 @@ const { execFile } = require('child_process');
 
 const app = express();
 
-const ORIGENES_OK = ['http://127.0.0.1:3000', 'http://localhost:3000'];
+const PUERTO = parseInt(process.env.PUERTO || '3000', 10);
+const DATA_DIR = process.env.SIGEL_DATA_DIR || __dirname;
+const ORIGENES_OK = ['http://127.0.0.1:' + PUERTO, 'http://localhost:' + PUERTO];
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && !ORIGENES_OK.includes(origin)) {
@@ -16,15 +18,21 @@ app.use((req, res, next) => {
 });
 app.use(express.json({ limit: '25mb' }));
 
-const PUERTO = 3000;
-const CFG_PATH = path.join(__dirname, 'config.json');
-const HIST_PATH = path.join(__dirname, 'historial.json');
-const NUM_PATH = path.join(__dirname, 'numeros_usados.json');
-const TMP_DIR = path.join(__dirname, 'tmp');
+const CFG_PATH = path.join(DATA_DIR, 'config.json');
+const HIST_PATH = path.join(DATA_DIR, 'historial.json');
+const NUM_PATH = path.join(DATA_DIR, 'numeros_usados.json');
+const TMP_DIR = path.join(DATA_DIR, 'tmp');
 const PS_PATH = path.join(__dirname, 'raw_print.ps1');
-const BACKUP_DIR = path.join(__dirname, 'backups');
-const FIRMAS_DIR = path.join(__dirname, 'firmas');
+const BACKUP_DIR = path.join(DATA_DIR, 'backups');
+const FIRMAS_DIR = path.join(DATA_DIR, 'firmas');
+const AUDIT_PATH = path.join(DATA_DIR, 'auditoria.jsonl');
 const MAX_BACKUPS_AUTO = 60;
+
+function auditar(accion, detalle) {
+  try {
+    fs.appendFileSync(AUDIT_PATH, JSON.stringify({ ts: new Date().toISOString(), accion, ...detalle }) + '\n', 'utf8');
+  } catch (e) {}
+}
 
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -462,6 +470,7 @@ app.post('/api/historial/anular', (req, res) => {
     }
   }
   res.json({ status: 'ok', libre, numero: n });
+  auditar('anular', { fecha, numero: n, libre });
   setTimeout(() => hacerBackup('auto'), 0);
 });
 
@@ -530,6 +539,22 @@ app.post('/api/respaldos/importar', (req, res) => {
     return;
   }
   res.json({ status: 'ok', nombre, cheques: contenido.historial.length });
+  auditar('importar', { nombre, cheques: contenido.historial.length });
+});
+
+app.get('/api/auditoria', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  let n = parseInt(String(req.query.n || '30'), 10);
+  if (!isFinite(n) || n < 1) n = 30;
+  if (n > 200) n = 200;
+  let eventos = [];
+  try {
+    eventos = fs.readFileSync(AUDIT_PATH, 'utf8')
+      .split('\n').filter(Boolean).slice(-n).reverse()
+      .map(l => { try { return JSON.parse(l); } catch (e) { return null; } })
+      .filter(Boolean);
+  } catch (e) {}
+  res.json(eventos);
 });
 
 app.post('/api/respaldos/restaurar', (req, res) => {
@@ -571,6 +596,7 @@ app.post('/api/respaldos/restaurar', (req, res) => {
     return;
   }
   res.json({ status: 'ok', message: `Respaldo ${nombre} restaurado` });
+  auditar('restaurar', { nombre });
 });
 
 app.get('/api/impresora', async (req, res) => {
@@ -646,6 +672,12 @@ app.post('/api/imprimir', (req, res) => {
           entrada.fuentes = cheque.fuentes;
         }
         appendHistorial(entrada);
+        auditar('imprimir', {
+          numero: entrada.numero,
+          beneficiario: entrada.beneficiario,
+          monto: entrada.monto,
+          reimpresion: !!esReimpresion
+        });
         setTimeout(() => hacerBackup('auto'), 0);
       }
       res.json({ status: 'ok', message: `Enviado a ${cfg.impresora}`, detalle: out });

@@ -1207,6 +1207,32 @@ $('btnBackupAhora').addEventListener('click', async () => {
   }
 });
 
+async function cargarAuditoria(){
+  try {
+    const r = await fetch('/api/auditoria?n=30');
+    const ev = await r.json();
+    const cont = $('listaAuditoria');
+    if (!cont) return;
+    if (!Array.isArray(ev) || !ev.length){
+      cont.innerHTML = '<div class="ayuda">Sin eventos todavía.</div>';
+      return;
+    }
+    cont.innerHTML = ev.map(e => {
+      const f = new Date(e.ts);
+      const fecha = isNaN(f) ? String(e.ts || '') :
+        f.toLocaleDateString('es-PE') + ' ' + f.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      let det = '';
+      if (e.accion === 'imprimir') det = 'N° ' + (e.numero || '—') + ' · ' + (e.beneficiario || '—') + ' · ' + (e.monto || '') + (e.reimpresion ? ' · reimpresión' : '');
+      else if (e.accion === 'anular') det = 'N° ' + (e.numero || '—') + (e.libre ? ' · número liberado' : '');
+      else det = e.nombre || '';
+      return '<div class="filaBackup">' +
+        '<span class="filaBackupNom"><b>' + escHtml(String(e.accion || '')) + '</b> · ' + escHtml(det) + '</span>' +
+        '<span class="filaBackupTam">' + escHtml(fecha) + '</span>' +
+        '</div>';
+    }).join('');
+  } catch (e) {}
+}
+
 $('btnImportarResp').addEventListener('click', () => $('fileResp').click());
 
 $('fileResp').addEventListener('change', async () => {
@@ -1375,7 +1401,7 @@ function activarTab(nombre){
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
   if (nombre === 'hist') cargarHistorial();
-  if (nombre === 'ajustes') cargarRespaldos();
+  if (nombre === 'ajustes'){ cargarRespaldos(); cargarAuditoria(); }
   if (nombre === 'nuevo') refrescarPreview();
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));

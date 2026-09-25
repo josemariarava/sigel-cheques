@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "css": "tailwindcss -i css/input.css -o css/app.css --minify",
-    "css:watch": "tailwindcss -i css/input.css -o css/app.css --watch"
+    "css:watch": "tailwindcss -i css/input.css -o css/app.css --watch",
+    "test": "node test_ui.js",
+    "test:api": "node test_api.js"
   },
   "keywords": [],
   "author": "",
