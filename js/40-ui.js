@@ -73,6 +73,7 @@ async function refrescarPreview(){
         (comoImprime ? ' · vista COMO IMPRIME' : '') +
         (margenFin > 0 ? ' · fin texto ' + (L - margenFin) + ' mm' : '') + extra;
     }
+    actualizarPillFirma();
   } catch(e){
     console.error('refrescarPreview', e);
     toast('Error en la vista previa: ' + e.message, true);
@@ -92,7 +93,9 @@ async function refrescarPreview(){
 
 function crearPad(canvas, btnImg, btnClr, inputFile, btnUndo){
   const ctx = canvas.getContext('2d');
-  const pad = { canvas, tinta:false, hayTinta: () => pad.tinta, limpiar, toDataURL: () => canvas.toDataURL() };
+  const pad = { canvas, tinta:false, hayTinta: () => pad.tinta, limpiar, toDataURL: () => canvas.toDataURL(),
+    pasosCount: () => pasos.length,
+    recortarPasos: n => { n = Math.max(1, Math.min(n, pasos.length)); pasos.length = n; refrescarUndo(); } };
   const pasos = [];
   function fondo(){
     ctx.fillStyle = '#fff';
@@ -363,9 +366,58 @@ function limpiarFormularioCheque(){
   $('fLetra').value = '';
   $('fConcepto').value = '';
   state.letraManual = false;
-  if (padFirma) padFirma.limpiar();
   guardarBorrador(true);
 }
+
+let firmaSnapshot = null;
+let firmaPasosN = 0;
+function actualizarPillFirma(){
+  const pill = $('btnFirmaPill');
+  if (!pill || !padFirma) return;
+  const conFirma = padFirma.hayTinta();
+  pill.classList.toggle('conFirma', conFirma);
+  const mini = $('firmaMini');
+  if (mini){
+    if (conFirma){
+      try { mini.src = padFirma.toDataURL(); mini.hidden = false; }
+      catch(e){ mini.hidden = true; mini.src = ''; }
+    } else { mini.hidden = true; mini.src = ''; }
+  }
+  const txt = $('firmaPillTxt');
+  if (txt) txt.textContent = conFirma ? 'Firma lista — toca para cambiar' : 'Añadir firma';
+}
+function cerrarModalFirma(){
+  $('modalFirma').classList.add('oculto');
+  actualizarPillFirma();
+}
+function restaurarFirmaSnapshot(){
+  if (!firmaSnapshot || !padFirma) return;
+  const c = padFirma.canvas;
+  const ctx = c.getContext('2d');
+  if (firmaSnapshot.t){
+    const img = new Image();
+    img.onload = () => { ctx.drawImage(img, 0, 0); refrescarPreview(); };
+    img.src = firmaSnapshot.d;
+  } else {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+  }
+  padFirma.tinta = firmaSnapshot.t;
+  padFirma.recortarPasos(firmaPasosN);
+  refrescarPreview();
+}
+$('btnFirmaPill').addEventListener('click', () => {
+  if (!padFirma) return;
+  try { firmaSnapshot = { d: padFirma.toDataURL(), t: padFirma.hayTinta() }; }
+  catch(e){ firmaSnapshot = null; }
+  firmaPasosN = padFirma.pasosCount();
+  $('modalFirma').classList.remove('oculto');
+});
+$('modalFirma').addEventListener('click', (e) => {
+  if (e.target === $('modalFirma')){ restaurarFirmaSnapshot(); cerrarModalFirma(); }
+});
+$('btnFirmaUsar').addEventListener('click', cerrarModalFirma);
+$('btnFirmaCancelar').addEventListener('click', () => { restaurarFirmaSnapshot(); cerrarModalFirma(); });
 
 $('btnImprimir').addEventListener('click', async () => {
   const data = datosFormulario();

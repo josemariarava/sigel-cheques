@@ -63,18 +63,13 @@
     <div id="fFechaLarga" class="chips"><span class="chip"></span></div>
 
     <div class="firmaFila">
-      <div class="firmaCaja">
-        <label>Firma (dibuja con el mouse o sube una imagen)</label>
-        <canvas class="pad" id="padFirma" width="720" height="260"></canvas>
-        <div class="padTools">
-          <button class="btn sec" id="btnFirmaUndo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-4 4 4 4M5 10h8a5 5 0 0 1 0 10h-2"/></svg>Deshacer</button>
-          <button class="btn sec" id="btnFirmaImg">Subir imagen</button>
-          <button class="btn sec" id="btnFirmaLimpiar">Limpiar</button>
-          <input type="file" id="firmaFile" accept="image/*" hidden>
-        </div>
-      </div>
+      <button type="button" class="firmaPill" id="btnFirmaPill" aria-haspopup="dialog" title="Firma del cheque">
+        <img id="firmaMini" alt="" hidden>
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        <span id="firmaPillTxt">Añadir firma</span>
+      </button>
       <div class="imprimirCaja">
-        <button class="btn btnAncho" id="btnImprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
+        <button class="btn btnAncho" id="btnImprimir" title="Ctrl + P"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
         <div class="ayuda">Inserta el cheque en la ranura frontal antes de imprimir. Si es la primera vez en el día, usa la pestaña <b>Calibración</b> para una prueba de grilla.</div>
       </div>
     </div>
@@ -366,6 +361,24 @@
     <div class="modalBtns">
       <button class="btn" id="mdSeguir">Listo, imprimir el siguiente</button>
       <button class="btn peligro" id="mdCancelar">Cancelar lote</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal oculto" id="modalFirma">
+  <div class="modalCaja modalFirmaCaja">
+    <h3>Firma del cheque</h3>
+    <p>Dibuja con el mouse o sube una imagen. Se mantiene hasta que la borres con "Limpiar".</p>
+    <canvas class="pad" id="padFirma" width="720" height="260"></canvas>
+    <div class="padTools">
+      <button class="btn sec" id="btnFirmaUndo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-4 4 4 4M5 10h8a5 5 0 0 1 0 10h-2"/></svg>Deshacer</button>
+      <button class="btn sec" id="btnFirmaImg">Subir imagen</button>
+      <button class="btn sec" id="btnFirmaLimpiar">Limpiar</button>
+      <input type="file" id="firmaFile" accept="image/*" hidden>
+    </div>
+    <div class="modalBtns">
+      <button class="btn sec" id="btnFirmaCancelar">Cancelar</button>
+      <button class="btn" id="btnFirmaUsar">Usar firma</button>
     </div>
   </div>
 </div>
