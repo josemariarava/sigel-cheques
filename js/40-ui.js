@@ -903,11 +903,53 @@ function fmtMontoNum(v){
   return v.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function rangoFechasActivo(){
+  return ($('histDesde').value || '') !== '' || ($('histHasta').value || '') !== '';
+}
+
+function exportarCsv(){
+  const filas = state.histVisibles || [];
+  if (!filas.length){ toast('No hay cheques para exportar con el filtro actual', true); return; }
+  const cols = ['Fecha impresión', 'Fecha cheque', 'N°', 'Beneficiario', 'Monto', 'Letra', 'Concepto', 'Estado', 'Tipo'];
+  const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lineas = [cols.map(esc).join(';')];
+  for (const h of filas){
+    lineas.push([
+      h.fecha_impre || h.fecha || '', h.fecha_cheque || '', h.numero || '', h.beneficiario || '',
+      h.monto || '', h.letra || '', h.concepto || '', estadoDe(h), h.tipo || 'normal'
+    ].map(esc).join(';'));
+  }
+  const blob = new Blob(['\uFEFF' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sigel_historial_' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('CSV exportado ✓ (' + filas.length + ' filas)');
+}
+
 function renderHistorial(){
   if (!state.historial) state.historial = [];
   const hist = state.historial;
+  const filtro = (($('histBuscar').value || '')).trim().toLowerCase();
+  const desde = $('histDesde').value || '';
+  const hasta = $('histHasta').value || '';
+  const visibles = hist.filter(h => {
+    const fi = String(h.fecha_impre || h.fecha || '').slice(0, 10);
+    if (desde && fi < desde) return false;
+    if (hasta && fi > hasta) return false;
+    if (!filtro) return true;
+    const campos = [h.numero, h.beneficiario, h.monto, h.concepto, h.fecha_cheque, h.letra];
+    const f = new Date(h.fecha_cheque || h.fecha);
+    if (!isNaN(f)) campos.push(f.toLocaleDateString('es-PE'));
+    return campos.some(v => String(v == null ? '' : v).toLowerCase().includes(filtro));
+  });
+  state.histVisibles = visibles;
+
   let imp = 0, anu = 0, rei = 0, total = 0;
-  for (const h of hist){
+  for (const h of visibles){
     if (estadoDe(h) === 'anulado') anu++;
     else if (h.tipo === 'reimpresion') rei++;
     else { imp++; total += montoNum(h.monto); }
@@ -919,18 +961,14 @@ function renderHistorial(){
     '<div class="estCaja"><b>Reimpresos</b>' + rei + '</div>' +
     '<div class="estCaja"><b>Monto total</b>' + sim + ' ' + fmtMontoNum(total) + '</div>';
 
-  const filtro = (($('histBuscar').value || '')).trim().toLowerCase();
-  const visibles = hist.filter(h => {
-    if (!filtro) return true;
-    const campos = [h.numero, h.beneficiario, h.monto, h.concepto, h.fecha_cheque, h.letra];
-    const f = new Date(h.fecha_cheque || h.fecha);
-    if (!isNaN(f)) campos.push(f.toLocaleDateString('es-PE'));
-    return campos.some(v => String(v == null ? '' : v).toLowerCase().includes(filtro));
-  });
-
   const body = $('histBody');
   body.innerHTML = '';
   $('histVacio').style.display = visibles.length ? 'none' : 'block';
+  if (!visibles.length){
+    $('histVacio').innerHTML = hist.length
+      ? 'No hay cheques que coincidan con el filtro activo.'
+      : 'Sin cheques impresos todavía.';
+  }
   for (const h of visibles){
     const anulado = estadoDe(h) === 'anulado';
     const esReimp = h.tipo === 'reimpresion';
@@ -1056,6 +1094,15 @@ async function cargarHistorial(){
 }
 
 $('histBuscar').addEventListener('input', renderHistorial);
+$('histDesde').addEventListener('input', renderHistorial);
+$('histHasta').addEventListener('input', renderHistorial);
+$('btnHistLimpiar').addEventListener('click', () => {
+  $('histBuscar').value = '';
+  $('histDesde').value = '';
+  $('histHasta').value = '';
+  renderHistorial();
+});
+$('btnCsv').addEventListener('click', exportarCsv);
 
 async function cargarRespaldos(){
   try {

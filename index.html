@@ -244,6 +244,15 @@
     <h2>Historial de cheques impresos</h2>
     <div id="histStats" class="histStats"></div>
     <input type="text" id="histBuscar" placeholder="Buscar por N°, beneficiario, monto, concepto o fecha…" class="mt-3 mb-1.5">
+    <div class="flex gap-2 flex-wrap items-center mb-2" id="histRango">
+      <span class="ayuda m-0">Desde</span>
+      <input type="date" id="histDesde" class="w-auto" aria-label="Fecha desde">
+      <span class="ayuda m-0">hasta</span>
+      <input type="date" id="histHasta" class="w-auto" aria-label="Fecha hasta">
+      <button class="btn sec btnPeq" id="btnHistLimpiar">Limpiar filtros</button>
+      <button class="btn sec btnPeq" id="btnCsv">Exportar CSV</button>
+    </div>
+    <div class="ayuda m-0 mb-2">El rango filtra por fecha de impresión. Las estadísticas y el CSV siguen el filtro activo.</div>
     <table>
       <thead><tr><th>Fecha</th><th>N°</th><th>Beneficiario</th><th>Monto</th><th>Concepto</th><th></th></tr></thead>
       <tbody id="histBody"></tbody>
