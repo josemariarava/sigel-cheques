@@ -31,12 +31,14 @@
 
 <section id="tab-nuevo" class="tab activo">
   <div class="panel">
-    <h2>Datos del cheque</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 formDensa">
-      <div>
+    <div class="cabeceraFila">
+      <h2>Datos del cheque</h2>
+      <div class="numFila">
         <label>N° de cheque</label>
         <input type="text" id="fNumero" class="numAuto">
       </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-x-4 gap-y-3 formDensa">
       <div>
         <div class="lblFila">
           <label>Fecha</label>
@@ -44,20 +46,20 @@
         </div>
         <input type="date" id="fFecha">
       </div>
-      <div class="lg:col-span-2">
+      <div class="lg:col-span-3">
+        <label>Monto (<span id="lblMoneda">S/</span>)</label>
+        <input type="number" id="fMonto" step="0.01" min="0" placeholder="0.00">
+      </div>
+      <div class="lg:col-span-6">
         <label>Beneficiario</label>
         <input type="text" id="fBenef" list="dlBenef" placeholder="Persona o empresa a pagar">
         <datalist id="dlBenef"></datalist>
       </div>
-      <div>
-        <label>Monto (<span id="lblMoneda">S/</span>)</label>
-        <input type="number" id="fMonto" step="0.01" min="0" placeholder="0.00">
-      </div>
-      <div class="lg:col-span-3">
+      <div class="lg:col-span-5">
         <label>Monto en letras (automático, editable)</label>
         <input type="text" id="fLetra" placeholder="se completa solo al escribir el monto">
       </div>
-      <div class="lg:col-span-4">
+      <div class="lg:col-span-7">
         <label>Concepto / memo</label>
         <input type="text" id="fConcepto" placeholder="Pago por…">
         <div id="conceptosChips" class="chips"></div>
@@ -71,8 +73,8 @@
         <span id="firmaPillTxt">Añadir firma</span>
       </button>
       <div class="imprimirCaja">
-        <button class="btn btnAncho" id="btnImprimir" title="Ctrl + P"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
         <div class="ayuda" title="Si es la primera vez en el día, usa la pestaña Calibración para una prueba de grilla.">Inserta el cheque en la ranura antes de imprimir.</div>
+        <button class="btn btnAncho" id="btnImprimir" title="Ctrl + P"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
       </div>
     </div>
   </div>

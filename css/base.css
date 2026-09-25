@@ -72,14 +72,18 @@ main{padding:18px;max-width:1280px;margin:0 auto}
 .firmaPill.conFirma{border-color:var(--accent);background:var(--accentTint);color:var(--accent);font-weight:600}
 #firmaMini{height:40px;max-width:150px;object-fit:contain;background:#fff;border:1px solid var(--borde);border-radius:6px}
 .imprimirCaja{flex:1 1 340px;margin-left:auto;max-width:420px}
-.imprimirCaja .ayuda{margin-top:8px}
+.imprimirCaja .ayuda{margin-top:0;margin-bottom:8px}
 label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 4px;color:var(--texto2)}
 .formDensa label{margin-top:0}
 .lblFila{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .lblFila label{margin-bottom:4px}
 #fFechaLarga{min-width:0}
 #fFechaLarga .chip{font-size:11.5px;display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
-#tab-nuevo .panel h2{margin-bottom:10px}
+.cabeceraFila{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:10px}
+.cabeceraFila h2{margin:0}
+.numFila{display:flex;align-items:center;gap:8px}
+.numFila label{margin:0;white-space:nowrap}
+#fNumero{width:120px}
 input[type=text],input[type=number],input[type=date],select,textarea{
   width:100%;padding:8px 10px;border:1px solid #8a8a8a;border-radius:var(--radioCtrl);font-size:14.5px;font-family:inherit;background:#fff;color:var(--texto);caret-color:var(--accent);transition:border-color var(--trans),box-shadow var(--trans)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
