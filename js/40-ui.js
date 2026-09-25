@@ -606,6 +606,11 @@ $('btnZoomIn').addEventListener('click', () => setZoom((state.zoom || 1) * 1.25)
 $('btnZoomOut').addEventListener('click', () => setZoom((state.zoom || 1) / 1.25));
 $('btnZoomFit').addEventListener('click', zoomFit);
 window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey){
+    const k = (e.key || '').toLowerCase();
+    if (k === 'p'){ e.preventDefault(); activarTab('nuevo'); $('btnImprimir').click(); return; }
+    if (k === 'f'){ e.preventDefault(); activarTab('hist'); setTimeout(() => $('histBuscar').focus(), 60); return; }
+  }
   if (!state.sel || !state.cfg) return;
   const tag = (e.target && e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
@@ -663,8 +668,8 @@ function pintarPosGrid(){
     const oculto = vis[key] === false;
     const fVal = (pos.fuente_mm >= 1 && pos.fuente_mm <= 8) ? pos.fuente_mm : '';
     const div = document.createElement('div');
-    div.className = 'text-xs border border-[#d7dee8] rounded-md p-[6px_8px] ' + (oculto ? 'bg-[#f1f3f6] opacity-55' : 'bg-[#f6f9fc]');
-    div.innerHTML = '<b class="text-[#0b5cad]">' + NOMBRES_CAMPO[key] + '</b> <label class="float-right font-normal cursor-pointer"><input type="checkbox" class="pgVis w-auto"' + (oculto ? '' : ' checked') + '> ver</label><br>' +
+    div.className = 'text-xs border border-[#e5e5e5] rounded-md p-[6px_8px] ' + (oculto ? 'bg-[#f0f0f0] opacity-55' : 'bg-[#f9f9f9]');
+    div.innerHTML = '<b class="text-[#0067c0]">' + NOMBRES_CAMPO[key] + '</b> <label class="float-right font-normal cursor-pointer"><input type="checkbox" class="pgVis w-auto"' + (oculto ? '' : ' checked') + '> ver</label><br>' +
       'X <input type="number" class="pgX w-[52px]" step="0.5" value="' + pos.x + '"> Y <input type="number" class="pgY w-[52px]" step="0.5" value="' + pos.y + '"><br>' +
       'Letra <input type="number" class="pgF w-[52px]" step="0.1" min="1" max="8" value="' + fVal + '" placeholder="global"> mm';
     const ix = div.querySelector('.pgX');
@@ -966,8 +971,8 @@ function renderHistorial(){
   $('histVacio').style.display = visibles.length ? 'none' : 'block';
   if (!visibles.length){
     $('histVacio').innerHTML = hist.length
-      ? 'No hay cheques que coincidan con el filtro activo.'
-      : 'Sin cheques impresos todavía.';
+      ? '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/></svg> No hay cheques que coincidan con el filtro activo.'
+      : '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7z"/><path d="M10 9h4M10 13h4"/></svg> Sin cheques impresos todavía.';
   }
   for (const h of visibles){
     const anulado = estadoDe(h) === 'anulado';
@@ -990,9 +995,9 @@ function renderHistorial(){
       '<td>' + escHtml(h.monto) + '</td>' +
       '<td>' + escHtml(h.concepto) + '</td>' +
       '<td class="whitespace-nowrap">' +
-        '<button class="btn sec btnPeq" data-acc="cargar">Cargar</button> ' +
-        (anulado ? '' : '<button class="btn btnPeq" data-acc="reimprimir">Reimprimir</button> ') +
-        (anulado || esReimp ? '' : '<button class="btn peligro btnPeq" data-acc="anular">Anular</button>') +
+        '<button class="btn sec btnPeq" data-acc="cargar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v7M9 7l3 3 3-3M5 12v7h14v-7"/></svg>Cargar</button> ' +
+        (anulado ? '' : '<button class="btn btnPeq" data-acc="reimprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3.2v3.6h-3.6M6.5 20.8v-3.6h3.6"/></svg>Reimprimir</button> ') +
+        (anulado || esReimp ? '' : '<button class="btn peligro btnPeq" data-acc="anular"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/></svg>Anular</button>') +
       '</td>';
     tr.querySelector('[data-acc=cargar]').addEventListener('click', async () => {
       $('fNumero').value = h.numero ? normNum(h.numero) : state.cfg.siguiente_numero;
@@ -1206,7 +1211,7 @@ function pintarCamposVisibles(){
   for (const key of CAMPOS){
     const on = vis[key] !== false;
     const div = document.createElement('div');
-    div.className = 'text-[13px] bg-[#f6f9fc] border border-[#d7dee8] rounded-md p-[7px_9px] flex items-center gap-[7px]';
+    div.className = 'text-[13px] bg-[#f9f9f9] border border-[#e5e5e5] rounded-md p-[7px_9px] flex items-center gap-[7px]';
     const id = 'cv_' + key;
     div.innerHTML = '<input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><label for="' + id + '" class="m-0 cursor-pointer">' + NOMBRES_CAMPO[key] + '</label>';
     const chk = div.querySelector('input');
