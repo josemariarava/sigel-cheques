@@ -156,6 +156,15 @@ tr.filaAnulada td{color:#a3a3a3}
 .modalCaja p{font-size:14px;color:var(--texto2);margin:4px 0 14px}
 .modalFirmaCaja{width:min(760px,94vw);text-align:left}
 .modalFirmaCaja .modalBtns{justify-content:flex-end;margin-top:16px}
+.modalDupCaja{width:min(520px,94vw);text-align:left;background:var(--warnBg);border:1.5px solid var(--warn);box-shadow:0 12px 32px rgba(157,93,0,.28)}
+.modalDupCaja h3{color:var(--warn);display:flex;align-items:center;gap:8px}
+.modalDupCaja h3::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 4px rgba(157,93,0,.2);flex:none}
+.modalDupCaja p{color:#6b4400}
+.modalDupCaja .modalBtns{justify-content:flex-end}
+.btn.warnBtn{background:var(--warn)}
+.btn.warnBtn:hover{background:#7d4a00}
+.btn.warnBtn:active{background:#653c00}
+#dupTexto{white-space:pre-line}
 .barra{height:8px;background:#e5e5e5;border-radius:4px;overflow:hidden;margin-bottom:16px}
 .barra span{display:block;height:100%;background:var(--accent);width:0%}
 .modalBtns{display:flex;gap:10px;justify-content:center}

@@ -152,7 +152,7 @@ const _setInterval = global.setInterval;
 global.setInterval = (fn, ms) => { const t = _setInterval(fn, ms); if (t.unref) t.unref(); return t; };
 
 try {
-  eval(codigo + '\n;global.__T = { state, setZoom, zoomFit, radioHitMm, buscarCampo, mostrarSel, guardarPosDebounced, fuentesSnapshot, restaurarFuentes, activarTab, activarSubTab, parseRuta, rutaDe, sincronizarRuta };');
+  eval(codigo + '\n;global.__T = { state, setZoom, zoomFit, radioHitMm, buscarCampo, mostrarSel, guardarPosDebounced, fuentesSnapshot, restaurarFuentes, activarTab, activarSubTab, parseRuta, rutaDe, sincronizarRuta, buscarDuplicado, normBenef };');
 } catch(e){
   errores.push('EVAL: ' + e.stack);
 }
@@ -225,6 +225,44 @@ setTimeout(() => {
     }
   } catch(e){
     errores.push('rutas: ' + e.stack);
+  }
+
+  try {
+    const T = global.__T;
+    if (T && T.buscarDuplicado){
+      console.log('===== BUSCAR DUPLICADO =====');
+      const ahora = Date.now();
+      const hace3d = new Date(ahora - 3 * 86400000).toISOString();
+      const hace9d = new Date(ahora - 9 * 86400000).toISOString();
+      const hist = [
+        { numero: 49, beneficiario: 'Cooperativa El Progreso', monto: 'S/ 15,000.00', fecha_impre: hace3d },
+        { numero: 45, beneficiario: 'Juan Pérez', monto: 'S/ 900.50', fecha_impre: hace3d, estado: 'anulado' },
+        { numero: 44, beneficiario: 'María López', monto: 'S/ 777.00', fecha_impre: hace3d, tipo: 'reimpresion' },
+        { numero: 42, beneficiario: 'Antigua SAC', monto: 'S/ 1,200.00', fecha_impre: hace9d }
+      ];
+      const casos = [
+        ['mismo benef + monto → dup', T.buscarDuplicado('Cooperativa El Progreso', 15000, hist), true],
+        ['monto con coma "15,000" → dup', T.buscarDuplicado('COOPERATIVA EL PROGRESO', '15,000', hist), true],
+        ['espacios extra + mayúsculas → dup', T.buscarDuplicado('  cooperativa   el progreso  ', 'S/ 15,000.00', hist), true],
+        ['anulado → null', T.buscarDuplicado('Juan Pérez', 900.5, hist), false],
+        ['reimpresión → null', T.buscarDuplicado('María López', 777, hist), false],
+        ['>7 días → null', T.buscarDuplicado('Antigua SAC', 1200, hist), false],
+        ['monto distinto → null', T.buscarDuplicado('Cooperativa El Progreso', 15001, hist), false],
+        ['beneficiario distinto → null', T.buscarDuplicado('Otra Empresa', 15000, hist), false],
+        ['vacíos → null', T.buscarDuplicado('', 0, hist), false]
+      ];
+      let dupsFallos = 0;
+      casos.forEach(([nombre, res, esperado]) => {
+        const ok = (res !== null) === esperado;
+        console.log((ok ? 'OK  ' : 'FALLO') + ' ' + nombre + (res ? ' -> N° ' + res.numero : ' -> null'));
+        if (!ok){ dupsFallos++; errores.push('dup: ' + nombre); }
+      });
+      console.log('buscarDuplicado:', (casos.length - dupsFallos) + '/' + casos.length);
+    } else {
+      errores.push('dup: buscarDuplicado no expuesta en __T');
+    }
+  } catch(e){
+    errores.push('dup: ' + e.stack);
   }
 
   console.log('===== ERRORES =====');

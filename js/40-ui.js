@@ -285,6 +285,54 @@ function pedirConfirmacion(texto){
   });
 }
 
+function normBenef(s){
+  return String(s == null ? '' : s).trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function buscarDuplicado(beneficiario, monto, hist){
+  const benef = normBenef(beneficiario);
+  const m = montoNum(monto);
+  if (!benef || !m) return null;
+  return (hist || []).find(h => {
+    if (estadoDe(h) === 'anulado' || h.tipo === 'reimpresion') return false;
+    if (normBenef(h.beneficiario) !== benef) return false;
+    if (Math.abs(montoNum(h.monto) - m) > 0.01) return false;
+    const t = new Date(h.fecha_impre || h.fecha || 0).getTime();
+    return isFinite(t) && t <= Date.now() && (Date.now() - t) <= 7 * 86400000;
+  }) || null;
+}
+
+function pedirDuplicado(dups){
+  return new Promise((resolve) => {
+    const m = $('modalDup');
+    $('dupTitulo').textContent = dups.length > 1
+      ? dups.length + ' cheques del lote coinciden con impresiones previas'
+      : 'Posible cheque duplicado';
+    const lineas = dups.map(d => {
+      const f = new Date(d.fecha);
+      const fTxt = isNaN(f) ? '' : f.toLocaleDateString('es-PE') + ' ' + f.toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+      return (d.etiqueta ? d.etiqueta + ' — ' : '') +
+        (d.numero ? 'N° ' + d.numero : 'sin número') +
+        (fTxt ? ' · impreso ' + fTxt : '') +
+        '\n  ' + d.monto + ' · ' + d.beneficiario;
+    });
+    $('dupTexto').textContent = (dups.length > 1
+      ? 'Estos cheques del lote ya se imprimieron antes con el mismo beneficiario y monto:\n\n'
+      : 'Ya se imprimió este mismo cheque con el mismo beneficiario y monto en los últimos 7 días:\n\n')
+      + lineas.join('\n\n')
+      + '\n\n¿Imprimir de todos modos?';
+    m.classList.remove('oculto');
+    function fin(ok){
+      m.classList.add('oculto');
+      $('dupAceptar').onclick = null;
+      $('dupCancelar').onclick = null;
+      resolve(ok);
+    }
+    $('dupAceptar').onclick = () => fin(true);
+    $('dupCancelar').onclick = () => fin(false);
+  });
+}
+
 const CLAVE_BORRADOR = 'cheque_borrador';
 function datosBorrador(){
   return {
@@ -431,22 +479,20 @@ $('btnImprimir').addEventListener('click', async () => {
     toast('El N° ' + normNum(num) + ' ya fue impreso' + (fechaTxt ? ' el ' + fechaTxt : '') + '. Usa otro número.', true);
     return;
   }
-  const dup = (state.historial || []).find(h => {
-    if (estadoDe(h) === 'anulado' || h.tipo === 'reimpresion') return false;
-    if (String(h.beneficiario || '').trim().toLowerCase() !== data.beneficiario.trim().toLowerCase()) return false;
-    if (Math.abs(montoNum(h.monto) - monto) > 0.01) return false;
-    const t = new Date(h.fecha_impre || h.fecha || 0).getTime();
-    return isFinite(t) && t <= Date.now() && (Date.now() - t) <= 7 * 86400000;
-  });
-  let msg = (num ? 'N° ' + normNum(num) + ' — ' : '') + '¿Imprimir ' + data.montoText + ' a ' + data.beneficiario + '?';
+  const dup = buscarDuplicado(data.beneficiario, montoNum($('fMonto').value), state.historial);
   if (dup){
-    const fd = new Date(dup.fecha_impre || dup.fecha);
-    const fdTxt = isNaN(fd) ? '' : ' el ' + fd.toLocaleDateString('es-PE');
-    msg += '\n⚠ Aviso: ya se imprimió el mismo monto a este beneficiario' + fdTxt +
-      (dup.numero ? ' (N° ' + normNum(dup.numero) + ')' : '') + '. ¿Continuar de todos modos?';
+    const okDup = await pedirDuplicado([{
+      numero: normNum(dup.numero),
+      fecha: dup.fecha_impre || dup.fecha,
+      monto: dup.monto,
+      beneficiario: dup.beneficiario
+    }]);
+    if (!okDup) return;
+  } else {
+    const msg = (num ? 'N° ' + normNum(num) + ' — ' : '') + '¿Imprimir ' + data.montoText + ' a ' + data.beneficiario + '?';
+    const ok = await pedirConfirmacion(msg);
+    if (!ok) return;
   }
-  const ok = await pedirConfirmacion(msg);
-  if (!ok) return;
   $('btnImprimir').disabled = true;
   try {
     await imprimirCheque(data, {
@@ -931,6 +977,22 @@ $('btnLote').addEventListener('click', async () => {
       if (numerosVistos[n]){ toast('N° ' + n + ' repetido en el lote', true); return; }
       numerosVistos[n] = true;
     }
+  }
+  const dupsLote = [];
+  for (let i = 0; i < 3; i++){
+    const c = cheques[i];
+    const d = buscarDuplicado(c.beneficiario, c._monto, state.historial);
+    if (d) dupsLote.push({
+      etiqueta: 'Cheque ' + (i + 1),
+      numero: normNum(d.numero),
+      fecha: d.fecha_impre || d.fecha,
+      monto: d.monto,
+      beneficiario: d.beneficiario
+    });
+  }
+  if (dupsLote.length){
+    const okDup = await pedirDuplicado(dupsLote);
+    if (!okDup){ toast('Lote cancelado'); return; }
   }
   $('btnLote').disabled = true;
   try {
