@@ -493,9 +493,48 @@ app.post('/api/respaldos', (req, res) => {
   res.json({ status: 'ok', nombre });
 });
 
+app.get('/api/respaldos/descargar', (req, res) => {
+  const nombre = path.basename(String(req.query.nombre || ''));
+  if (!/^((auto|manual)(?:_import)?_\d{4}-\d{2}-\d{2}_\d{6})\.json$/.test(nombre)) {
+    res.status(400).json({ status: 'error', message: 'Nombre de respaldo inválido' });
+    return;
+  }
+  const p = path.join(BACKUP_DIR, nombre);
+  if (!fs.existsSync(p)) {
+    res.status(404).json({ status: 'error', message: 'Respaldo no encontrado' });
+    return;
+  }
+  res.download(p, nombre);
+});
+
+app.post('/api/respaldos/importar', (req, res) => {
+  const contenido = req.body && req.body.contenido;
+  if (!contenido || typeof contenido !== 'object' || !Array.isArray(contenido.historial)) {
+    res.status(400).json({ status: 'error', message: 'El archivo no tiene estructura de respaldo (falta historial[])' });
+    return;
+  }
+  if (contenido.historial.length > 50000) {
+    res.status(400).json({ status: 'error', message: 'Historial demasiado grande' });
+    return;
+  }
+  const ts = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const marca = ts.getFullYear() + '-' + pad(ts.getMonth() + 1) + '-' + pad(ts.getDate()) + '_' +
+    pad(ts.getHours()) + pad(ts.getMinutes()) + pad(ts.getSeconds());
+  const nombre = 'manual_import_' + marca + '.json';
+  try {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    fs.writeFileSync(path.join(BACKUP_DIR, nombre), JSON.stringify(contenido, null, 2), 'utf8');
+  } catch (e) {
+    res.status(500).json({ status: 'error', message: 'No se pudo guardar el respaldo importado: ' + e.message });
+    return;
+  }
+  res.json({ status: 'ok', nombre, cheques: contenido.historial.length });
+});
+
 app.post('/api/respaldos/restaurar', (req, res) => {
   const nombre = path.basename(String((req.body && req.body.nombre) || ''));
-  if (!/^((auto|manual)_\d{4}-\d{2}-\d{2}_\d{6})\.json$/.test(nombre)) {
+  if (!/^((auto|manual)(?:_import)?_\d{4}-\d{2}-\d{2}_\d{6})\.json$/.test(nombre)) {
     res.status(400).json({ status: 'error', message: 'Nombre de respaldo inválido' });
     return;
   }

@@ -70,6 +70,8 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .btn.peligro{background:var(--mal)}
 .btn.peligro:hover{background:#a4251a}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+a.btn{text-decoration:none;color:inherit}
+a.btn.sec:hover{color:var(--accent)}
 .btnAncho{width:100%;margin-top:16px}
 .btnPeq{padding:5px 10px;font-size:12.5px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center}

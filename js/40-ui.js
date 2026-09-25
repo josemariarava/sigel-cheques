@@ -1120,6 +1120,7 @@ async function cargarRespaldos(){
             : '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3.2v3.6h-3.6M6.5 20.8v-3.6h3.6"/></svg>')
           + ' ' + escHtml(b.nombre) + '</span>' +
         '<span class="filaBackupTam">' + Math.max(1, Math.round(b.tamano / 1024)) + ' KB</span>' +
+        '<a class="btn sec btnPeq" href="/api/respaldos/descargar?nombre=' + encodeURIComponent(b.nombre) + '" download>Descargar</a> ' +
         '<button class="btn peligro btnPeq" data-resp="' + escHtml(b.nombre) + '">Restaurar</button>' +
       '</div>').join('');
     cont.querySelectorAll('[data-resp]').forEach(btn => {
@@ -1162,6 +1163,38 @@ $('btnBackupAhora').addEventListener('click', async () => {
     toast(e.message, true);
   } finally {
     btn.disabled = false;
+  }
+});
+
+$('btnImportarResp').addEventListener('click', () => $('fileResp').click());
+
+$('fileResp').addEventListener('change', async () => {
+  const f = $('fileResp').files && $('fileResp').files[0];
+  if (!f) return;
+  try {
+    const txt = await f.text();
+    let obj;
+    try { obj = JSON.parse(txt); } catch (e) { throw new Error('El archivo no es JSON válido'); }
+    if (!obj || typeof obj !== 'object' || !Array.isArray(obj.historial))
+      throw new Error('El archivo no tiene estructura de respaldo (falta historial[])');
+    const ok = await pedirConfirmacion(
+      '¿Importar "' + f.name + '"? Se guardará como respaldo manual con ' + obj.historial.length +
+      ' cheques, sin alterar los datos actuales. Podrás restaurarlo desde la lista.'
+    );
+    if (!ok) return;
+    const r = await fetch('/api/respaldos/importar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contenido: obj })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.message || 'No se pudo importar el respaldo');
+    toast('Respaldo importado ✓ ' + j.nombre);
+    cargarRespaldos();
+  } catch (e) {
+    toast(e.message, true);
+  } finally {
+    $('fileResp').value = '';
   }
 });
 

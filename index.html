@@ -313,7 +313,11 @@
     <div class="separador"></div>
     <h2>Respaldos</h2>
     <div class="ayuda">Se crea un respaldo automático tras cada cheque impreso o anulado. Aquí puedes crear uno manual o restaurar uno anterior (historial, configuración, números y firmas).</div>
-    <button class="btn mt-2.5" id="btnBackupAhora"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>Respaldar ahora</button>
+    <div class="flex gap-2 flex-wrap mt-2.5">
+      <button class="btn" id="btnBackupAhora"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>Respaldar ahora</button>
+      <button class="btn sec" id="btnImportarResp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10M8 10.5l4 4 4-4M5 19h14"/></svg>Importar respaldo (.json)</button>
+      <input type="file" id="fileResp" accept=".json,application/json" class="hidden">
+    </div>
     <div id="listaRespaldos" class="mt-3"></div>
   </div>
 </section>
