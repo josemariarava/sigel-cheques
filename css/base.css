@@ -61,6 +61,12 @@ main{padding:18px;max-width:1280px;margin:0 auto}
 .panel{background:var(--card);border:1px solid var(--borde);border-radius:var(--radio);padding:18px;box-shadow:var(--sombraCard)}
 .dosCol{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
 @media(max-width:900px){.dosCol{grid-template-columns:1fr}}
+.dosColAbajo{display:grid;grid-template-columns:1fr 440px;gap:18px;align-items:start;margin-top:18px}
+@media(max-width:1100px){.dosColAbajo{grid-template-columns:1fr}}
+.firmaFila{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;margin-top:16px}
+.firmaCaja{flex:1 1 440px;max-width:480px;min-width:0}
+.imprimirCaja{flex:1 1 340px;margin-left:auto;max-width:420px}
+.imprimirCaja .ayuda{margin-top:8px}
 label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 4px;color:var(--texto2)}
 input[type=text],input[type=number],input[type=date],select,textarea{
   width:100%;padding:8px 10px;border:1px solid #8a8a8a;border-radius:var(--radioCtrl);font-size:14.5px;font-family:inherit;background:#fff;color:var(--texto);caret-color:var(--accent);transition:border-color var(--trans),box-shadow var(--trans)}
@@ -93,8 +99,7 @@ button.chip{cursor:pointer;font-family:inherit;transition:background var(--trans
 button.chip:hover{background:var(--accentTint);border-color:#cfe3f7;color:var(--accent)}
 #previewWrap{position:relative}
 #previewScroll{overflow:auto;max-height:42vh;border:1px solid var(--borde);border-radius:var(--radioCtrl);background:#fff}
-.pvTab{display:none}
-.pvTab.activo{display:block}
+@media(min-width:1101px){#previewWrap{position:sticky;top:12px}}
 .atajosDet{margin-top:8px;font-size:12.5px;color:var(--texto3)}
 .atajosDet summary{cursor:pointer}
 .atajosDet .ayuda{margin-top:5px}

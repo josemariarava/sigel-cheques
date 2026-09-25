@@ -30,83 +30,86 @@
 <main>
 
 <section id="tab-nuevo" class="tab activo">
-  <div class="dosCol">
-    <div class="panel">
-      <h2>Datos del cheque</h2>
-      <div class="fila2">
-        <div>
-          <label>N° de cheque</label>
-          <input type="text" id="fNumero" class="numAuto">
-        </div>
-        <div>
-          <label>Fecha</label>
-          <input type="date" id="fFecha">
-        </div>
+  <div class="panel">
+    <h2>Datos del cheque</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3">
+      <div>
+        <label>N° de cheque</label>
+        <input type="text" id="fNumero" class="numAuto">
       </div>
-      <div id="fFechaLarga" class="chips"><span class="chip"></span></div>
-
-      <label>Beneficiario</label>
-      <input type="text" id="fBenef" list="dlBenef" placeholder="Persona o empresa a pagar">
-      <datalist id="dlBenef"></datalist>
-
-      <label>Monto (<span id="lblMoneda">S/</span>)</label>
-      <input type="number" id="fMonto" step="0.01" min="0" placeholder="0.00">
-
-      <label>Monto en letras (automático, editable)</label>
-      <input type="text" id="fLetra" placeholder="se completa solo al escribir el monto">
-
-      <label>Concepto / memo</label>
-      <input type="text" id="fConcepto" placeholder="Pago por…">
-      <div id="conceptosChips" class="chips"></div>
-
-      <label>Firma (dibuja con el mouse o sube una imagen)</label>
-      <canvas class="pad" id="padFirma" width="720" height="260"></canvas>
-      <div class="padTools">
-        <button class="btn sec" id="btnFirmaUndo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-4 4 4 4M5 10h8a5 5 0 0 1 0 10h-2"/></svg>Deshacer</button>
-        <button class="btn sec" id="btnFirmaImg">Subir imagen</button>
-        <button class="btn sec" id="btnFirmaLimpiar">Limpiar</button>
-        <input type="file" id="firmaFile" accept="image/*" hidden>
+      <div>
+        <label>Fecha</label>
+        <input type="date" id="fFecha">
       </div>
-
-      <button class="btn btnAncho" id="btnImprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
-      <div class="ayuda">Inserta el cheque en la ranura frontal antes de imprimir. Si es la primera vez en el día, usa la pestaña <b>Calibración</b> para una prueba de grilla.</div>
+      <div class="lg:col-span-2">
+        <label>Beneficiario</label>
+        <input type="text" id="fBenef" list="dlBenef" placeholder="Persona o empresa a pagar">
+        <datalist id="dlBenef"></datalist>
+      </div>
+      <div>
+        <label>Monto (<span id="lblMoneda">S/</span>)</label>
+        <input type="number" id="fMonto" step="0.01" min="0" placeholder="0.00">
+      </div>
+      <div class="lg:col-span-3">
+        <label>Monto en letras (automático, editable)</label>
+        <input type="text" id="fLetra" placeholder="se completa solo al escribir el monto">
+      </div>
+      <div class="lg:col-span-4">
+        <label>Concepto / memo</label>
+        <input type="text" id="fConcepto" placeholder="Pago por…">
+        <div id="conceptosChips" class="chips"></div>
+      </div>
     </div>
+    <div id="fFechaLarga" class="chips"><span class="chip"></span></div>
 
+    <div class="firmaFila">
+      <div class="firmaCaja">
+        <label>Firma (dibuja con el mouse o sube una imagen)</label>
+        <canvas class="pad" id="padFirma" width="720" height="260"></canvas>
+        <div class="padTools">
+          <button class="btn sec" id="btnFirmaUndo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-4 4 4 4M5 10h8a5 5 0 0 1 0 10h-2"/></svg>Deshacer</button>
+          <button class="btn sec" id="btnFirmaImg">Subir imagen</button>
+          <button class="btn sec" id="btnFirmaLimpiar">Limpiar</button>
+          <input type="file" id="firmaFile" accept="image/*" hidden>
+        </div>
+      </div>
+      <div class="imprimirCaja">
+        <button class="btn btnAncho" id="btnImprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
+        <div class="ayuda">Inserta el cheque en la ranura frontal antes de imprimir. Si es la primera vez en el día, usa la pestaña <b>Calibración</b> para una prueba de grilla.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dosColAbajo">
     <div class="panel" id="previewWrap">
-      <h2><span id="pvTitulo">Vista previa</span> <span id="pvSubtitulo" class="font-normal text-[12.5px] text-[#68788c]">(tal como se sostiene el cheque)</span></h2>
-      <div class="subNav" id="pvSubNav">
-        <button class="activo" data-pvtab="vista"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/></svg>Vista previa</button>
-        <button data-pvtab="pos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v3.5M12 18v3.5M2.5 12H6M18 12h3.5"/></svg>Posiciones (mm)</button>
+      <h2>Vista previa <span class="font-normal text-[12.5px] text-[#68788c]">(tal como se sostiene el cheque)</span></h2>
+      <div id="previewScroll">
+        <canvas id="preview" width="680" height="280"></canvas>
+      </div>
+      <div id="zoomBar">
+        <button type="button" class="btn sec" id="btnZoomOut" title="Alejar">−</button>
+        <button type="button" class="btn sec" id="btnZoomIn" title="Acercar">+</button>
+        <button type="button" class="btn sec" id="btnZoomFit">Ajustar</button>
+        <span id="zoomPct" class="text-[12.5px] text-[#68788c] min-w-[44px] inline-block">100%</span>
+        <span class="flex-1"></span>
+        <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" class="m-0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
+        <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" class="m-0">Guías</label></span>
       </div>
       <div id="selInfo"></div>
+      <div id="pvInfo" class="ayuda"></div>
+      <details class="atajosDet">
+        <summary>Atajos: rueda = zoom · flechas = mover campo · +/− = letra · doble clic = acercar</summary>
+        <div class="ayuda">Rueda = zoom · flechas ↑↓←→ = mover campo (1 mm; Shift = 5 mm; Alt = 0.5 mm) · <b>+</b>/<b>−</b> = tamaño de letra del campo · doble clic = acercar al campo · arrastre o X/Y en Calibración · se guarda solo.</div>
+      </details>
+    </div>
 
-      <div class="pvTab activo" id="pvtab-vista">
-        <div id="previewScroll">
-          <canvas id="preview" width="680" height="280"></canvas>
-        </div>
-        <div id="zoomBar">
-          <button type="button" class="btn sec" id="btnZoomOut" title="Alejar">−</button>
-          <button type="button" class="btn sec" id="btnZoomIn" title="Acercar">+</button>
-          <button type="button" class="btn sec" id="btnZoomFit">Ajustar</button>
-          <span id="zoomPct" class="text-[12.5px] text-[#68788c] min-w-[44px] inline-block">100%</span>
-          <span class="flex-1"></span>
-          <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" class="m-0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
-          <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" class="m-0">Guías</label></span>
-        </div>
-        <div id="pvInfo" class="ayuda"></div>
-        <details class="atajosDet">
-          <summary>Atajos: rueda = zoom · flechas = mover campo · +/− = letra · doble clic = acercar</summary>
-          <div class="ayuda">Rueda = zoom · flechas ↑↓←→ = mover campo (1 mm; Shift = 5 mm; Alt = 0.5 mm) · <b>+</b>/<b>−</b> = tamaño de letra del campo · doble clic = acercar al campo · arrastre o X/Y en Calibración · se guarda solo.</div>
-        </details>
+    <div class="panel">
+      <h2>Posiciones de campos (mm)</h2>
+      <div class="mb-2.5">
+        <button type="button" class="btn sec w-full" id="btnAjustarLinea"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
+        <div class="ayuda mt-1.5">Selecciona un campo en la vista previa y pulsa aquí, o usa <b>+</b>/<b>−</b> con el campo seleccionado.</div>
       </div>
-
-      <div class="pvTab" id="pvtab-pos">
-        <div class="mb-2.5 mt-2.5">
-          <button type="button" class="btn sec w-full" id="btnAjustarLinea"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
-          <div class="ayuda mt-1.5">Selecciona un campo en la vista previa y pulsa aquí, o usa <b>+</b>/<b>−</b> con el campo seleccionado.</div>
-        </div>
-        <div id="posGrid" class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2"></div>
-      </div>
+      <div id="posGrid" class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2"></div>
     </div>
   </div>
 </section>
