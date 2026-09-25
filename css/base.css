@@ -28,11 +28,20 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:'Outfit','Segoe UI',system-ui,sans-serif;font-size:14px;background:var(--fondo);color:var(--texto);-webkit-font-smoothing:antialiased}
 .ico{width:1em;height:1em;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.125em}
-header{background:var(--accent);color:#fff;padding:13px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.18)}
-header h1{margin:0;font-size:17px;font-weight:600;display:flex;align-items:center;gap:9px}
-header h1 .ico{font-size:21px}
-.verBadge{font-size:11.5px;font-weight:700;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.38);padding:3px 10px;border-radius:12px;letter-spacing:.3px}
-#estado{font-size:13px;background:rgba(255,255,255,.16);padding:6px 12px;border-radius:999px}
+header{background:linear-gradient(180deg,#fbfdff,#f0f4f9);color:var(--texto);border-bottom:1px solid var(--borde);
+  padding:11px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.hdrMarca{display:flex;align-items:center;gap:12px;min-width:0}
+.logoTile{width:38px;height:38px;flex:none;border-radius:9px;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,103,192,.32),inset 0 1px 0 rgba(255,255,255,.25)}
+.logoTile .ico{font-size:21px}
+.hdrTit{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hdrTitulo{font-size:16.5px;font-weight:600;line-height:1.15;letter-spacing:.2px}
+.hdrSub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--texto3);font-weight:500}
+.verBadge{font-size:10.5px;font-weight:700;background:var(--accentTint);color:var(--accent);border:1px solid #cfe3f7;
+  padding:1.5px 9px;border-radius:999px;letter-spacing:.3px}
+#estado{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--texto2);
+  background:#fff;border:1px solid var(--borde);padding:7px 14px;border-radius:999px;box-shadow:var(--sombraBtn);max-width:100%}
+#estado .punto{margin-right:0}
 nav{display:flex;background:var(--card);border-bottom:1px solid var(--borde);padding:6px 10px;gap:4px;overflow-x:auto}
 nav button{display:inline-flex;align-items:center;gap:8px;border:none;background:none;padding:9px 14px;font-size:14px;font-family:inherit;cursor:pointer;color:var(--texto2);border-radius:6px;white-space:nowrap;transition:background var(--trans),color var(--trans)}
 nav button:hover{background:rgba(0,0,0,.045);color:var(--texto)}
@@ -98,8 +107,10 @@ tr.filaAnulada td{color:#a3a3a3}
 .filaBackup{display:flex;align-items:center;gap:10px;padding:7px 10px;background:#f9f9f9;border:1px solid var(--borde);border-radius:6px;margin-bottom:6px;font-size:13px}
 .filaBackupNom{flex:1;word-break:break-all}
 .filaBackupTam{color:var(--texto3);font-size:12px;white-space:nowrap}
-.punto{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
-.punto.ok{background:var(--ok)} .punto.mal{background:var(--mal)}
+.punto{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;flex:none}
+.punto.ok{background:var(--ok);animation:puntoPulse 2.4s ease-out infinite}
+.punto.mal{background:var(--mal)}
+@keyframes puntoPulse{0%{box-shadow:0 0 0 0 rgba(15,123,15,.45)}70%{box-shadow:0 0 0 6px rgba(15,123,15,0)}100%{box-shadow:0 0 0 0 rgba(15,123,15,0)}}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--texto);color:#fff;
   padding:11px 22px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;z-index:50;max-width:90vw;text-align:center;box-shadow:var(--sombraAlta)}
 #toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
