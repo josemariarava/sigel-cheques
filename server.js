@@ -411,6 +411,24 @@ app.get('/api/historial', (req, res) => {
   res.json(loadHistorial());
 });
 
+app.get('/api/beneficiarios', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const hist = loadHistorial();
+  const mapa = new Map();
+  for (const h of hist) {
+    if ((h.estado || 'impreso') === 'anulado') continue;
+    const nom = String(h.beneficiario || '').trim();
+    if (!nom) continue;
+    const k = nom.toLowerCase();
+    const e = mapa.get(k) || { nombre: nom, veces: 0, ultima: '' };
+    e.veces++;
+    const f = String(h.fecha_impre || h.fecha || '');
+    if (f > e.ultima) { e.ultima = f; e.nombre = nom; }
+    mapa.set(k, e);
+  }
+  res.json([...mapa.values()].sort((a, b) => b.veces - a.veces).slice(0, 40));
+});
+
 app.post('/api/historial/anular', (req, res) => {
   const { fecha, numero } = req.body || {};
   if (!fecha) {

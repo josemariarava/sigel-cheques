@@ -295,6 +295,19 @@ function restaurarBorrador(){
   } catch (e) { return false; }
 }
 
+async function cargarBeneficiarios(){
+  try {
+    const r = await fetch('/api/beneficiarios');
+    const lista = await r.json();
+    if (!Array.isArray(lista)) return;
+    state.beneficiarios = lista;
+    const dl = $('dlBenef');
+    if (dl) dl.innerHTML = lista.map(b =>
+      '<option value="' + escHtml(b.nombre) + '">' + b.veces + '× · ' + escHtml(String(b.ultima || '').slice(0, 10)) + '</option>'
+    ).join('');
+  } catch (e) {}
+}
+
 function pintarConceptosChips(){
   const cont = $('conceptosChips');
   if (!cont) return;
@@ -1039,6 +1052,7 @@ async function cargarHistorial(){
   }
   renderHistorial();
   pintarConceptosChips();
+  cargarBeneficiarios();
 }
 
 $('histBuscar').addEventListener('input', renderHistorial);
