@@ -264,69 +264,82 @@
 </section>
 
 <section id="tab-ajustes" class="tab">
-  <div class="panel max-w-[760px]">
-    <h2>Datos de la cuenta y del titular</h2>
-    <div class="fila2">
-      <div><label>Titular / cuenta</label><input type="text" id="ajTitular"></div>
-      <div><label>Banco</label><input type="text" id="ajBanco"></div>
-    </div>
-    <div class="fila2">
-      <div><label>N° de cuenta (se imprime si está activo)</label><input type="text" id="ajCuenta"></div>
-      <div><label>Ciudad (para la línea de fecha)</label><input type="text" id="ajCiudad"></div>
-    </div>
-
-    <div class="checkline"><input type="checkbox" id="ajChkNum"><label for="ajChkNum" class="m-0">Imprimir N° de cheque en el cuerpo</label></div>
-    <div class="checkline"><input type="checkbox" id="ajChkCta"><label for="ajChkCta" class="m-0">Imprimir N° de cuenta en el cuerpo</label></div>
-
-    <div class="separador"></div>
-    <h2>Fecha en el cheque</h2>
-    <label>Formato</label>
-    <select id="ajFechaFmt">
-      <option value="numeros">Numérica — CAJAMARCA 15 09 26</option>
-      <option value="larga">Larga — CAJAMARCA, 15 DE SETIEMBRE DE 2026</option>
-    </select>
-
-    <div class="separador"></div>
-    <h2>Campos que van en el cheque</h2>
-    <div class="ayuda mt-0">Marca solo los que quieras imprimir. Los desmarcados no se ven en la vista previa ni salen en la impresora.</div>
-    <div id="camposVisibles" class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2 mt-2.5"></div>
-
-    <div class="separador"></div>
-    <h2>Moneda y textos</h2>
-    <div class="fila2">
-      <div><label>Moneda (letras)</label><input type="text" id="ajMoneda"></div>
-      <div><label>Símbolo (número)</label><input type="text" id="ajSimbolo"></div>
-    </div>
-    <label>Texto "orden de pago"</label>
-    <input type="text" id="ajTextoOrden">
-
-    <div class="separador"></div>
-    <h2>Lote</h2>
-    <label>Espera entre cheques del lote (segundos)</label>
-    <input type="number" id="ajDelay" step="1" min="2">
-
-    <div class="separador"></div>
-    <h2>Numeración</h2>
-    <label>Siguiente número de cheque</label>
-    <input type="number" id="ajSiguiente" step="1" min="1">
-
-    <button class="btn btnAncho" id="btnGuardaAjustes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8 4.5v5h7v-5"/><path d="M8 19.5v-6h8v6"/></svg>Guardar ajustes</button>
-
-    <div class="separador"></div>
-    <h2>Respaldos</h2>
-    <div class="ayuda">Se crea un respaldo automático tras cada cheque impreso o anulado. Aquí puedes crear uno manual o restaurar uno anterior (historial, configuración, números y firmas).</div>
-    <div class="flex gap-2 flex-wrap mt-2.5">
-      <button class="btn" id="btnBackupAhora"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>Respaldar ahora</button>
-      <button class="btn sec" id="btnImportarResp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10M8 10.5l4 4 4-4M5 19h14"/></svg>Importar respaldo (.json)</button>
-      <input type="file" id="fileResp" accept=".json,application/json" class="hidden">
-    </div>
-    <div id="listaRespaldos" class="mt-3"></div>
+  <div class="subNav" id="ajSubNav">
+    <button class="activo" data-subtab="config"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4z"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></svg>Configuración</button>
+    <button data-subtab="respaldos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>Respaldos</button>
+    <button data-subtab="auditoria"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7z"/><path d="M10 9h4M10 13h4"/></svg>Auditoría</button>
   </div>
 
-  <div class="panel mt-4">
-    <h2>Auditoría</h2>
-    <div class="ayuda">Registro de las últimas acciones: impresos, anulaciones, restauraciones e importaciones (auditoria.jsonl junto a los datos).</div>
-    <div id="listaAuditoria" class="mt-3"></div>
+  <div class="subtab activo" id="subtab-config">
+    <div class="panel max-w-[760px]">
+      <h2>Datos de la cuenta y del titular</h2>
+      <div class="fila2">
+        <div><label>Titular / cuenta</label><input type="text" id="ajTitular"></div>
+        <div><label>Banco</label><input type="text" id="ajBanco"></div>
+      </div>
+      <div class="fila2">
+        <div><label>N° de cuenta (se imprime si está activo)</label><input type="text" id="ajCuenta"></div>
+        <div><label>Ciudad (para la línea de fecha)</label><input type="text" id="ajCiudad"></div>
+      </div>
+
+      <div class="checkline"><input type="checkbox" id="ajChkNum"><label for="ajChkNum" class="m-0">Imprimir N° de cheque en el cuerpo</label></div>
+      <div class="checkline"><input type="checkbox" id="ajChkCta"><label for="ajChkCta" class="m-0">Imprimir N° de cuenta en el cuerpo</label></div>
+
+      <div class="separador"></div>
+      <h2>Fecha en el cheque</h2>
+      <label>Formato</label>
+      <select id="ajFechaFmt">
+        <option value="numeros">Numérica — CAJAMARCA 15 09 26</option>
+        <option value="larga">Larga — CAJAMARCA, 15 DE SETIEMBRE DE 2026</option>
+      </select>
+
+      <div class="separador"></div>
+      <h2>Campos que van en el cheque</h2>
+      <div class="ayuda mt-0">Marca solo los que quieras imprimir. Los desmarcados no se ven en la vista previa ni salen en la impresora.</div>
+      <div id="camposVisibles" class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2 mt-2.5"></div>
+
+      <div class="separador"></div>
+      <h2>Moneda y textos</h2>
+      <div class="fila2">
+        <div><label>Moneda (letras)</label><input type="text" id="ajMoneda"></div>
+        <div><label>Símbolo (número)</label><input type="text" id="ajSimbolo"></div>
+      </div>
+      <label>Texto "orden de pago"</label>
+      <input type="text" id="ajTextoOrden">
+
+      <div class="separador"></div>
+      <h2>Lote</h2>
+      <label>Espera entre cheques del lote (segundos)</label>
+      <input type="number" id="ajDelay" step="1" min="2">
+
+      <div class="separador"></div>
+      <h2>Numeración</h2>
+      <label>Siguiente número de cheque</label>
+      <input type="number" id="ajSiguiente" step="1" min="1">
+
+      <button class="btn btnAncho" id="btnGuardaAjustes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8 4.5v5h7v-5"/><path d="M8 19.5v-6h8v6"/></svg>Guardar ajustes</button>
+    </div>
+  </div>
+
+  <div class="subtab" id="subtab-respaldos">
+    <div class="panel max-w-[760px]">
+      <h2>Respaldos</h2>
+      <div class="ayuda">Se crea un respaldo automático tras cada cheque impreso o anulado. Aquí puedes crear uno manual o restaurar uno anterior (historial, configuración, números y firmas).</div>
+      <div class="flex gap-2 flex-wrap mt-2.5">
+        <button class="btn" id="btnBackupAhora"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>Respaldar ahora</button>
+        <button class="btn sec" id="btnImportarResp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10M8 10.5l4 4 4-4M5 19h14"/></svg>Importar respaldo (.json)</button>
+        <input type="file" id="fileResp" accept=".json,application/json" class="hidden">
+      </div>
+      <div id="listaRespaldos" class="mt-3"></div>
+    </div>
+  </div>
+
+  <div class="subtab" id="subtab-auditoria">
+    <div class="panel max-w-[760px]">
+      <h2>Auditoría</h2>
+      <div class="ayuda">Registro de las últimas acciones: impresos, anulaciones, restauraciones e importaciones (auditoria.jsonl junto a los datos).</div>
+      <div id="listaAuditoria" class="mt-3"></div>
+    </div>
   </div>
 </section>
 

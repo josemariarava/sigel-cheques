@@ -51,6 +51,13 @@ nav button .ico{font-size:16px}
 main{padding:18px;max-width:1280px;margin:0 auto}
 .tab{display:none}
 .tab.activo{display:block}
+.subNav{display:flex;gap:4px;width:fit-content;max-width:100%;overflow-x:auto;padding:4px;background:var(--card);border:1px solid var(--borde);border-radius:var(--radioCtrl);margin-bottom:14px;box-shadow:var(--sombraCard)}
+.subNav button{display:inline-flex;align-items:center;gap:7px;border:none;background:transparent;color:var(--texto2);font-family:inherit;font-size:13.5px;padding:7px 14px;border-radius:calc(var(--radioCtrl) - 2px);cursor:pointer;white-space:nowrap;transition:background var(--trans),color var(--trans)}
+.subNav button:hover{background:#f0f0f0;color:var(--texto)}
+.subNav button.activo{background:var(--accentTint);color:var(--accent);font-weight:600}
+.subNav .ico{font-size:15px}
+.subtab{display:none}
+.subtab.activo{display:block}
 .panel{background:var(--card);border:1px solid var(--borde);border-radius:var(--radio);padding:18px;box-shadow:var(--sombraCard)}
 .dosCol{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
 @media(max-width:900px){.dosCol{grid-template-columns:1fr}}

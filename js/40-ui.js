@@ -1397,14 +1397,24 @@ document.querySelectorAll('[data-off]').forEach(btn => {
   });
 });
 
+function activarSubTab(nombre){
+  document.querySelectorAll('#ajSubNav button').forEach(b => b.classList.toggle('activo', b.dataset.subtab === nombre));
+  document.querySelectorAll('.subtab').forEach(t => t.classList.toggle('activo', t.id === 'subtab-' + nombre));
+  if (nombre === 'respaldos') cargarRespaldos();
+  if (nombre === 'auditoria') cargarAuditoria();
+  const subNav = $('ajSubNav');
+  if (subNav && subNav.scrollIntoView) subNav.scrollIntoView({ block: 'start' });
+}
+
 function activarTab(nombre){
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
   if (nombre === 'hist') cargarHistorial();
-  if (nombre === 'ajustes'){ cargarRespaldos(); cargarAuditoria(); }
+  if (nombre === 'ajustes') activarSubTab('config');
   if (nombre === 'nuevo') refrescarPreview();
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));
+document.querySelectorAll('#ajSubNav button').forEach(b => b.addEventListener('click', () => activarSubTab(b.dataset.subtab)));
 
 $('fMonto').addEventListener('input', () => {
   state.letraManual = false;
