@@ -9,16 +9,16 @@
 <body>
 
 <header>
-  <h1>🏦 Impresión de Cheques — Epson TM-H6000VI <span class="font-normal opacity-85">(Slip)</span> <span class="verBadge">SIGEL v2-en-desarrollo</span></h1>
+  <h1><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 4.5l9 6"/><path d="M5.5 10.5v7M9.5 10.5v7M14.5 10.5v7M18.5 10.5v7M3.5 20.5h17"/></svg> Impresión de Cheques — Epson TM-H6000VI <span class="font-normal opacity-85">(Slip)</span> <span class="verBadge">SIGEL v2-en-desarrollo</span></h1>
   <div id="estado"><span class="punto mal"></span>consultando…</div>
 </header>
 
 <nav>
-  <button class="activo" data-tab="nuevo">Nuevo cheque</button>
-  <button data-tab="lote">Lote ×3</button>
-  <button data-tab="calib">Calibración</button>
-  <button data-tab="hist">Historial</button>
-  <button data-tab="ajustes">Ajustes</button>
+  <button class="activo" data-tab="nuevo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h7.5l4 4v13h-11.5z"/><path d="M14 3.5v4h4"/><path d="M9 12h6M9 15.5h6"/></svg>Nuevo cheque</button>
+  <button data-tab="lote"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5h10.5v11H8z"/><path d="M5.5 8.5v11h10.5"/></svg>Lote ×3</button>
+  <button data-tab="calib"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 4.5h15v15h-15z"/><path d="M9.5 4.5v15M14.5 4.5v15M4.5 9.5h15M4.5 14.5h15"/></svg>Calibración</button>
+  <button data-tab="hist"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15z"/><path d="M12 8.2V12l2.8 1.7"/></svg>Historial</button>
+  <button data-tab="ajustes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4z"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></svg>Ajustes</button>
 </nav>
 
 <main>
@@ -59,7 +59,7 @@
         <input type="file" id="firmaFile" accept="image/*" hidden>
       </div>
 
-      <button class="btn btnAncho" id="btnImprimir">🖨️ Imprimir cheque</button>
+      <button class="btn btnAncho" id="btnImprimir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
       <div class="ayuda">Inserta el cheque en la ranura frontal antes de imprimir. Si es la primera vez en el día, usa la pestaña <b>Calibración</b> para una prueba de grilla.</div>
     </div>
 
@@ -83,7 +83,7 @@
       <div class="subPanel">
         <h3>Posiciones de campos (mm)</h3>
         <div class="mb-2.5">
-          <button type="button" class="btn sec w-full" id="btnAjustarLinea">✂ Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
+          <button type="button" class="btn sec w-full" id="btnAjustarLinea"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
           <div class="ayuda mt-1.5">Selecciona un campo en la vista previa o en la grilla, luego pulsa el botón. O usa <b>+</b> / <b>−</b> con el campo seleccionado para achicar/agrandar a mano (Shift = ±0.5 mm).</div>
         </div>
         <div id="posGrid" class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2"></div>
@@ -116,7 +116,7 @@
       <input type="file" id="loteFile" accept="image/*" hidden>
     </div>
 
-    <button class="btn btnAncho max-w-[420px]" id="btnLote">🖨️ Imprimir los 3 cheques</button>
+    <button class="btn btnAncho max-w-[420px]" id="btnLote"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir los 3 cheques</button>
     <div class="ayuda">Se imprime el 1.º, luego te pedirá retirarlo y colocar el siguiente (espera configurable en Ajustes).</div>
   </div>
 </section>
@@ -129,9 +129,9 @@
 
       <div class="subPanel">
         <h2>Pruebas de impresión</h2>
-        <button class="btn w-full mb-2.5" id="btnGrilla">🧱 Imprimir grilla (10 mm + marcas de esquina 2/5/10)</button>
-        <button class="btn sec w-full mb-2.5" id="btnAvance">📏 Test avance — barra a todo el largo</button>
-        <button class="btn sec w-full" id="btnPrueba">🧪 Imprimir cheque de prueba</button>
+        <button class="btn w-full mb-2.5" id="btnGrilla"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v17M3.5 12h17"/><path d="M12 9.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6z"/></svg>Imprimir grilla (10 mm + marcas de esquina 2/5/10)</button>
+        <button class="btn sec w-full mb-2.5" id="btnAvance"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h17v5h-17z"/><path d="M7 9.5v2.2M11 9.5v3M15 9.5v2.2M19 9.5v3"/></svg>Test avance — barra a todo el largo</button>
+        <button class="btn sec w-full" id="btnPrueba"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h17v9h-17z"/><path d="M6.5 13h5M14.5 10.5h3.5"/></svg>Imprimir cheque de prueba</button>
         <div class="ayuda">La grilla muestra cruces cada 10 mm. El <b>test avance</b> pinta una banda negra en el borde de entrada y otra en el <b>FIN</b> del largo configurado: si el FIN no cae en el borde real del papel, ajusta Largo/Ancho (el eje de avance) hasta que coincida.</div>
       </div>
 
@@ -291,12 +291,12 @@
     <label>Siguiente número de cheque</label>
     <input type="number" id="ajSiguiente" step="1" min="1">
 
-    <button class="btn btnAncho" id="btnGuardaAjustes">💾 Guardar ajustes</button>
+    <button class="btn btnAncho" id="btnGuardaAjustes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8 4.5v5h7v-5"/><path d="M8 19.5v-6h8v6"/></svg>Guardar ajustes</button>
 
     <div class="separador"></div>
     <h2>Respaldos</h2>
     <div class="ayuda">Se crea un respaldo automático tras cada cheque impreso o anulado. Aquí puedes crear uno manual o restaurar uno anterior (historial, configuración, números y firmas).</div>
-    <button class="btn mt-2.5" id="btnBackupAhora">📦 Respaldar ahora</button>
+    <button class="btn mt-2.5" id="btnBackupAhora"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>Respaldar ahora</button>
     <div id="listaRespaldos" class="mt-3"></div>
   </div>
 </section>

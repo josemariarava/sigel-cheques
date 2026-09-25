@@ -27,8 +27,8 @@ async function iniciar(){
       } else throw e;
     } catch (e2){
       document.body.insertAdjacentHTML('afterbegin',
-        '<div class="bg-[#c62828] text-white p-[16px_22px] text-[15px] text-center leading-[1.6]">' +
-        '⛔ No se pudo conectar con el servidor local.<br>' +
+        '<div class="bg-[#c42b1c] text-white p-[16px_22px] text-[15px] text-center leading-[1.6]">' +
+        '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15z"/><path d="M12 8v4.5M12 15.6v.4"/></svg> No se pudo conectar con el servidor local.<br>' +
         'Cierra esta página y ejecuta <b>start.bat</b>, luego abre <b>http://localhost:3000</b> en el navegador. ' +
         '(No abras index.html con doble clic.)</div>');
       document.querySelectorAll('input,button,select,textarea').forEach(el => { el.disabled = true; });

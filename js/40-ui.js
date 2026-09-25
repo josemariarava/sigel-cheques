@@ -988,7 +988,10 @@ async function cargarRespaldos(){
     }
     cont.innerHTML = lista.map(b =>
       '<div class="filaBackup">' +
-        '<span class="filaBackupNom">' + (b.tipo === 'manual' ? '📦' : '🔄') + ' ' + escHtml(b.nombre) + '</span>' +
+        '<span class="filaBackupNom">' + (b.tipo === 'manual'
+            ? '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5a4 4 0 0 1 .4-8 5.5 5.5 0 0 1 10.45-1.1A3.9 3.9 0 0 1 17.35 18.5z"/></svg>'
+            : '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3.2v3.6h-3.6M6.5 20.8v-3.6h3.6"/></svg>')
+          + ' ' + escHtml(b.nombre) + '</span>' +
         '<span class="filaBackupTam">' + Math.max(1, Math.round(b.tamano / 1024)) + ' KB</span>' +
         '<button class="btn peligro btnPeq" data-resp="' + escHtml(b.nombre) + '">Restaurar</button>' +
       '</div>').join('');

@@ -380,6 +380,7 @@ app.get('/index.html', enviarIndex);
 const staticOpts = { setHeaders: (res) => res.set('Cache-Control', 'no-store') };
 app.use('/css', express.static(path.join(__dirname, 'css'), staticOpts));
 app.use('/js', express.static(path.join(__dirname, 'js'), staticOpts));
+app.use('/fonts', express.static(path.join(__dirname, 'fonts'), staticOpts));
 
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
