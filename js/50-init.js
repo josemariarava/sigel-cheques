@@ -35,8 +35,8 @@ async function iniciar(){
       return;
     }
   }
-  padFirma = crearPad($('padFirma'), $('btnFirmaImg'), $('btnFirmaLimpiar'), $('firmaFile'));
-  padLote = crearPad($('padLote'), $('btnLoteImg'), $('btnLoteLimpiar'), $('loteFile'));
+  padFirma = crearPad($('padFirma'), $('btnFirmaImg'), $('btnFirmaLimpiar'), $('firmaFile'), $('btnFirmaUndo'));
+  padLote = crearPad($('padLote'), $('btnLoteImg'), $('btnLoteLimpiar'), $('loteFile'), $('btnLoteUndo'));
   $('fNumero').value = String(state.cfg.siguiente_numero);
   $('fFecha').value = new Date().toISOString().slice(0,10);
   $('lFecha').value = new Date().toISOString().slice(0,10);

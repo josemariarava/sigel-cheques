@@ -90,16 +90,39 @@ async function refrescarPreview(){
   }
 }
 
-function crearPad(canvas, btnImg, btnClr, inputFile){
+function crearPad(canvas, btnImg, btnClr, inputFile, btnUndo){
   const ctx = canvas.getContext('2d');
   const pad = { canvas, tinta:false, hayTinta: () => pad.tinta, limpiar, toDataURL: () => canvas.toDataURL() };
+  const pasos = [];
   function fondo(){
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     pad.tinta = false;
   }
-  function limpiar(){ fondo(); }
+  function snap(){
+    try { pasos.push({ d: canvas.toDataURL(), t: pad.tinta }); } catch (e) {}
+    if (pasos.length > 40) pasos.shift();
+    refrescarUndo();
+  }
+  function refrescarUndo(){
+    if (btnUndo) btnUndo.disabled = pasos.length < 2;
+  }
+  function deshacer(){
+    if (pasos.length < 2) return;
+    pasos.pop();
+    const paso = pasos[pasos.length - 1];
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0);
+      pad.tinta = !!paso.t;
+      refrescarPreview();
+      refrescarUndo();
+    };
+    img.src = paso.d;
+  }
+  function limpiar(){ fondo(); snap(); }
   fondo();
+  snap();
   let dib = false;
   function pos(e){
     const r = canvas.getBoundingClientRect();
@@ -123,9 +146,10 @@ function crearPad(canvas, btnImg, btnClr, inputFile){
     ctx.stroke();
     pad.tinta = true;
   });
-  canvas.addEventListener('pointerup', () => { dib = false; refrescarPreview(); });
+  canvas.addEventListener('pointerup', () => { if (dib){ dib = false; snap(); refrescarPreview(); } });
   btnClr.addEventListener('click', () => { limpiar(); refrescarPreview(); });
   btnImg.addEventListener('click', () => inputFile.click());
+  if (btnUndo) btnUndo.addEventListener('click', deshacer);
   inputFile.addEventListener('change', () => {
     const f = inputFile.files[0];
     if (!f) return;
@@ -139,6 +163,7 @@ function crearPad(canvas, btnImg, btnClr, inputFile){
       pad.tinta = true;
       URL.revokeObjectURL(url);
       inputFile.value = '';
+      snap();
       refrescarPreview();
     };
     img.src = url;
@@ -354,10 +379,21 @@ $('btnImprimir').addEventListener('click', async () => {
     toast('El N° ' + normNum(num) + ' ya fue impreso' + (fechaTxt ? ' el ' + fechaTxt : '') + '. Usa otro número.', true);
     return;
   }
-  const ok = await pedirConfirmacion(
-    (num ? 'N° ' + normNum(num) + ' — ' : '') +
-    '¿Imprimir ' + data.montoText + ' a ' + data.beneficiario + '?'
-  );
+  const dup = (state.historial || []).find(h => {
+    if (estadoDe(h) === 'anulado' || h.tipo === 'reimpresion') return false;
+    if (String(h.beneficiario || '').trim().toLowerCase() !== data.beneficiario.trim().toLowerCase()) return false;
+    if (Math.abs(montoNum(h.monto) - monto) > 0.01) return false;
+    const t = new Date(h.fecha_impre || h.fecha || 0).getTime();
+    return isFinite(t) && t <= Date.now() && (Date.now() - t) <= 7 * 86400000;
+  });
+  let msg = (num ? 'N° ' + normNum(num) + ' — ' : '') + '¿Imprimir ' + data.montoText + ' a ' + data.beneficiario + '?';
+  if (dup){
+    const fd = new Date(dup.fecha_impre || dup.fecha);
+    const fdTxt = isNaN(fd) ? '' : ' el ' + fd.toLocaleDateString('es-PE');
+    msg += '\n⚠ Aviso: ya se imprimió el mismo monto a este beneficiario' + fdTxt +
+      (dup.numero ? ' (N° ' + normNum(dup.numero) + ')' : '') + '. ¿Continuar de todos modos?';
+  }
+  const ok = await pedirConfirmacion(msg);
   if (!ok) return;
   $('btnImprimir').disabled = true;
   try {

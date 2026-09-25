@@ -62,6 +62,7 @@
       <label>Firma (dibuja con el mouse o sube una imagen)</label>
       <canvas class="pad" id="padFirma" width="720" height="260"></canvas>
       <div class="padTools">
+        <button class="btn sec" id="btnFirmaUndo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-4 4 4 4M5 10h8a5 5 0 0 1 0 10h-2"/></svg>Deshacer</button>
         <button class="btn sec" id="btnFirmaImg">Subir imagen</button>
         <button class="btn sec" id="btnFirmaLimpiar">Limpiar</button>
         <input type="file" id="firmaFile" accept="image/*" hidden>
@@ -119,6 +120,7 @@
     <label class="mt-4">Firma del lote (común a los 3)</label>
     <canvas class="pad max-w-[560px]" id="padLote" width="720" height="200"></canvas>
     <div class="padTools">
+      <button class="btn sec" id="btnLoteUndo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-4 4 4 4M5 10h8a5 5 0 0 1 0 10h-2"/></svg>Deshacer</button>
       <button class="btn sec" id="btnLoteImg">Subir imagen</button>
       <button class="btn sec" id="btnLoteLimpiar">Limpiar</button>
       <input type="file" id="loteFile" accept="image/*" hidden>
