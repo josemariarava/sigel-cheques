@@ -38,7 +38,7 @@ header{background:linear-gradient(180deg,#fbfdff,#f0f4f9);color:var(--texto);bor
 .hdrTitulo{margin:0;font-size:18px;font-weight:500;line-height:1.15;letter-spacing:.8px;color:var(--texto)}
 .hdrTitulo b{color:var(--accent);font-weight:700}
 .hdrSub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--texto3);font-weight:500}
-.verBadge{font-size:10px;font-weight:600;background:#e9edf2;color:#5d5d5d;
+.verBadge{font-size:14px;font-weight:600;background: var(--accent);color:#fff;
   padding:1.5px 8px;border-radius:999px;letter-spacing:.3px}
 #estado{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--texto2);
   background:#fff;border:1px solid var(--borde);padding:7px 14px;border-radius:999px;box-shadow:var(--sombraBtn);max-width:100%}
