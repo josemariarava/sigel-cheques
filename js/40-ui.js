@@ -1397,8 +1397,52 @@ document.querySelectorAll('[data-off]').forEach(btn => {
   });
 });
 
+const TAB_SLUFS = { nuevo: 'nuevo-cheque', lote: 'lote', calib: 'calibracion', hist: 'historial', ajustes: 'ajustes' };
+const SLUF_TABS = {};
+for (const [k, v] of Object.entries(TAB_SLUFS)) SLUF_TABS[v] = k;
+const SUB_SLUFS = { respaldos: 'respaldos', auditoria: 'auditoria' };
+
+function rutaDe(tab, sub){
+  const base = '/' + (TAB_SLUFS[tab] || TAB_SLUFS.nuevo);
+  if (tab === 'ajustes' && sub && SUB_SLUFS[sub]) return base + '/' + SUB_SLUFS[sub];
+  return base;
+}
+
+function parseRuta(pathname){
+  const p = String(pathname || '/').replace(/\/+$/, '') || '/';
+  const seg = p.split('/').filter(Boolean);
+  if (!seg.length) return null;
+  const tab = SLUF_TABS[seg[0]];
+  if (!tab) return { tab: 'nuevo', sub: null, invalida: true };
+  if (tab === 'ajustes' && seg[1]){
+    if (seg[1] === 'config') return { tab, sub: 'config' };
+    const sub = Object.keys(SUB_SLUFS).find(k => SUB_SLUFS[k] === seg[1]);
+    if (sub) return { tab, sub };
+    return { tab, sub: 'config', invalida: true };
+  }
+  return { tab, sub: null };
+}
+
+function sincronizarRuta(restaurando){
+  if (typeof location === 'undefined' || typeof history === 'undefined') return;
+  const ruta = rutaDe(state.tabActual, state.subtabActual);
+  if (location.pathname === ruta) return;
+  if (restaurando) history.replaceState(null, '', ruta);
+  else history.pushState(null, '', ruta);
+}
+
+function rutaDesdeNavegador(){
+  const r = (typeof location !== 'undefined') ? parseRuta(location.pathname) : null;
+  if (r) return r;
+  let guardado = 'nuevo';
+  try { guardado = localStorage.getItem('cheque_tab') || 'nuevo'; } catch (e) {}
+  if (!$('tab-' + guardado)) guardado = 'nuevo';
+  return { tab: guardado, sub: null };
+}
+
 function activarSubTab(nombre, restaurando){
   if (!$('subtab-' + nombre)) nombre = 'config';
+  state.subtabActual = nombre;
   document.querySelectorAll('#ajSubNav button').forEach(b => b.classList.toggle('activo', b.dataset.subtab === nombre));
   document.querySelectorAll('.subtab').forEach(t => t.classList.toggle('activo', t.id === 'subtab-' + nombre));
   if (!restaurando){
@@ -1408,10 +1452,12 @@ function activarSubTab(nombre, restaurando){
   if (nombre === 'auditoria') cargarAuditoria();
   const subNav = $('ajSubNav');
   if (!restaurando && subNav && subNav.scrollIntoView) subNav.scrollIntoView({ block: 'start' });
+  sincronizarRuta(restaurando);
 }
 
 function activarTab(nombre, restaurando){
   if ($('tab-' + nombre)) {
+    state.tabActual = nombre;
     document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
   }
@@ -1421,9 +1467,18 @@ function activarTab(nombre, restaurando){
   if (nombre === 'hist') cargarHistorial();
   if (nombre === 'ajustes') activarSubTab('config', restaurando);
   if (nombre === 'nuevo') refrescarPreview();
+  sincronizarRuta(restaurando);
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));
 document.querySelectorAll('#ajSubNav button').forEach(b => b.addEventListener('click', () => activarSubTab(b.dataset.subtab)));
+window.addEventListener('popstate', () => {
+  const r = (typeof location !== 'undefined') ? parseRuta(location.pathname) : null;
+  if (!r) return;
+  if (!$('tab-' + r.tab)) return;
+  activarTab(r.tab, true);
+  if (r.tab === 'ajustes') activarSubTab(r.sub || 'config', true);
+  sincronizarRuta(true);
+});
 
 $('fMonto').addEventListener('input', () => {
   state.letraManual = false;

@@ -100,6 +100,11 @@ global.Image = class {
 global.URL = global.URL || {};
 global.URL.createObjectURL = () => 'blob:x';
 global.URL.revokeObjectURL = () => {};
+global.location = { pathname: '/' };
+global.history = {
+  pushState(s, t, url){ global.location.pathname = String(url || '/'); },
+  replaceState(s, t, url){ global.location.pathname = String(url || '/'); }
+};
 
 const cfgCrudo = JSON.parse(fs.readFileSync(path.join(BASE, 'config.json'), 'utf8'));
 let cfgServidor = JSON.parse(JSON.stringify(cfgCrudo));
@@ -147,7 +152,7 @@ const _setInterval = global.setInterval;
 global.setInterval = (fn, ms) => { const t = _setInterval(fn, ms); if (t.unref) t.unref(); return t; };
 
 try {
-  eval(codigo + '\n;global.__T = { state, setZoom, zoomFit, radioHitMm, buscarCampo, mostrarSel, guardarPosDebounced, fuentesSnapshot, restaurarFuentes };');
+  eval(codigo + '\n;global.__T = { state, setZoom, zoomFit, radioHitMm, buscarCampo, mostrarSel, guardarPosDebounced, fuentesSnapshot, restaurarFuentes, activarTab, activarSubTab, parseRuta, rutaDe, sincronizarRuta };');
 } catch(e){
   errores.push('EVAL: ' + e.stack);
 }
@@ -181,6 +186,45 @@ setTimeout(() => {
     }
   } catch(e){
     errores.push('fuentes: ' + e.stack);
+  }
+
+  try {
+    const T = global.__T;
+    if (T && T.activarTab && T.parseRuta){
+      console.log('===== RUTAS =====');
+      T.activarTab('hist');
+      const r1 = global.location.pathname === '/historial';
+      console.log("activarTab('hist') ->", global.location.pathname, r1 ? 'OK' : 'FALLO');
+      if (!r1) errores.push('ruta: activarTab(hist) debía dar /historial, dio ' + global.location.pathname);
+
+      T.activarTab('ajustes');
+      T.activarSubTab('respaldos');
+      const r2 = global.location.pathname === '/ajustes/respaldos';
+      console.log("ajustes + respaldos ->", global.location.pathname, r2 ? 'OK' : 'FALLO');
+      if (!r2) errores.push('ruta: ajustes/respaldos debía dar /ajustes/respaldos, dio ' + global.location.pathname);
+
+      T.activarTab('ajustes');
+      const r3 = global.location.pathname === '/ajustes';
+      console.log("ajustes (vuelve a config) ->", global.location.pathname, r3 ? 'OK' : 'FALLO');
+      if (!r3) errores.push('ruta: activarTab(ajustes) debía dar /ajustes, dio ' + global.location.pathname);
+
+      const p1 = T.parseRuta('/nuevo-cheque');
+      const p2 = T.parseRuta('/algo-inexistente');
+      const p3 = T.parseRuta('/');
+      const r4 = p1 && p1.tab === 'nuevo' && p2 && p2.invalida && p2.tab === 'nuevo' && p3 === null;
+      console.log('parseRuta(/nuevo-cheque)=', p1 && p1.tab, '| parseRuta(/algo-inexistente)=invalida:', !!(p2 && p2.invalida), '| parseRuta(/)=', p3, r4 ? 'OK' : 'FALLO');
+      if (!r4) errores.push('ruta: parseRuta incorrecto');
+
+      const rd = T.rutaDe('ajustes', 'auditoria');
+      const r5 = rd === '/ajustes/auditoria' && T.rutaDe('hist', 'auditoria') === '/historial';
+      console.log('rutaDe(ajustes,auditoria)=', rd, r5 ? 'OK' : 'FALLO');
+      if (!r5) errores.push('ruta: rutaDe incorrecto');
+      T.activarTab('nuevo');
+    } else {
+      errores.push('rutas: funciones no expuestas en __T');
+    }
+  } catch(e){
+    errores.push('rutas: ' + e.stack);
   }
 
   console.log('===== ERRORES =====');

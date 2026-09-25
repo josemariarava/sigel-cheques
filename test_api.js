@@ -156,6 +156,23 @@ async function main(){
     ok(x.s === 200 && x.j && typeof x.j.ok === 'boolean', 'GET /api/impresora responde');
     x = await post('/api/config', { fuente_mm: 5 });
     ok(x.s === 200 && x.j && x.j.config && x.j.config.fuente_mm === 5, 'POST /api/config actualiza');
+
+    console.log('-- rutas SPA --');
+    let fr = await fetch(B + '/historial');
+    let html = await fr.text();
+    ok(fr.status === 200 && html.includes('id="tab-hist"'), 'GET /historial sirve index.html', 'status ' + fr.status);
+    fr = await fetch(B + '/ajustes/respaldos');
+    html = await fr.text();
+    ok(fr.status === 200 && html.includes('ajSubNav'), 'GET /ajustes/respaldos sirve index.html', 'status ' + fr.status);
+    fr = await fetch(B + '/no-existe-esto');
+    html = await fr.text();
+    ok(fr.status === 200 && html.includes('id="tab-nuevo"'), 'GET ruta desconocida sirve index.html (la normaliza el cliente)', 'status ' + fr.status);
+    fr = await fetch(B + '/api/ruta_inexistente');
+    ok(fr.status === 404, 'GET /api/... inexistente -> 404 (no HTML)', 'status ' + fr.status);
+    fr = await fetch(B + '/css/app.css');
+    ok(fr.status === 200, 'GET /css/app.css sigue 200', 'status ' + fr.status);
+    fr = await fetch(B + '/js/40-ui.js');
+    ok(fr.status === 200, 'GET /js/40-ui.js sigue 200', 'status ' + fr.status);
   } finally {
     child.kill();
     try { fs.rmSync(DIR, { recursive: true, force: true }); } catch (e) {}

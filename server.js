@@ -691,6 +691,14 @@ app.post('/api/imprimir', (req, res) => {
     });
 });
 
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    enviarIndex(req, res);
+    return;
+  }
+  next();
+});
+
 app.listen(PUERTO, '127.0.0.1', () => {
   console.log(`Servidor de cheques listo en http://localhost:${PUERTO}`);
   estadoImpresora().then((e) => {
