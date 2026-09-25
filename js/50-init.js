@@ -40,12 +40,14 @@ async function iniciar(){
   $('fNumero').value = String(state.cfg.siguiente_numero);
   $('fFecha').value = new Date().toISOString().slice(0,10);
   $('lFecha').value = new Date().toISOString().slice(0,10);
+  if (restaurarBorrador()) toast('Borrador recuperado ✓');
   cargarAjustes();
   actualizarLabelsAvance();
   pintarLote();
   refrescarPreview();
   refrescarEstado();
   setInterval(refrescarEstado, 15000);
+  cargarHistorial();
   try {
     const rn = await fetch('/api/numeros');
     if (rn.ok) state.numerosUsados = await rn.json() || {};

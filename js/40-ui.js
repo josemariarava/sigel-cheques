@@ -257,6 +257,68 @@ function pedirConfirmacion(texto){
   });
 }
 
+const CLAVE_BORRADOR = 'cheque_borrador';
+function datosBorrador(){
+  return {
+    numero: $('fNumero').value, fecha: $('fFecha').value,
+    benef: $('fBenef').value, monto: $('fMonto').value,
+    letra: $('fLetra').value, concepto: $('fConcepto').value
+  };
+}
+function guardarBorrador(inmediato){
+  clearTimeout(state.borradorTimer);
+  const guardar = () => {
+    try {
+      const d = datosBorrador();
+      const vacio = !(d.benef || '').trim() && !d.monto && !(d.letra || '').trim() && !(d.concepto || '').trim();
+      if (vacio) localStorage.removeItem(CLAVE_BORRADOR);
+      else localStorage.setItem(CLAVE_BORRADOR, JSON.stringify({ ...d, ts: Date.now() }));
+    } catch (e) {}
+  };
+  if (inmediato) guardar();
+  else state.borradorTimer = setTimeout(guardar, 400);
+}
+function restaurarBorrador(){
+  try {
+    const b = JSON.parse(localStorage.getItem(CLAVE_BORRADOR) || 'null');
+    if (!b) return false;
+    const hay = (b.benef || '').trim() || b.monto || (b.letra || '').trim() || (b.concepto || '').trim();
+    if (!hay) return false;
+    if (b.numero) $('fNumero').value = b.numero;
+    if (b.fecha) $('fFecha').value = b.fecha;
+    $('fBenef').value = b.benef || '';
+    $('fMonto').value = b.monto || '';
+    $('fLetra').value = b.letra || '';
+    $('fConcepto').value = b.concepto || '';
+    if (b.letra) state.letraManual = true;
+    return true;
+  } catch (e) { return false; }
+}
+
+function pintarConceptosChips(){
+  const cont = $('conceptosChips');
+  if (!cont) return;
+  const cuenta = new Map();
+  for (const h of (state.historial || [])){
+    if (estadoDe(h) === 'anulado') continue;
+    const c = String(h.concepto || '').trim();
+    if (!c) continue;
+    cuenta.set(c, (cuenta.get(c) || 0) + 1);
+  }
+  const top = [...cuenta.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!top.length){ cont.innerHTML = ''; cont.style.display = 'none'; return; }
+  cont.style.display = '';
+  cont.innerHTML = '<span class="ayuda m-0 self-center">Frecuentes:</span>' +
+    top.map(([c]) => '<button type="button" class="chip" data-conc="' + escHtml(c) + '">' + escHtml(c) + '</button>').join('');
+  cont.querySelectorAll('[data-conc]').forEach(b => {
+    b.addEventListener('click', () => {
+      $('fConcepto').value = b.dataset.conc || '';
+      refrescarPreview();
+      guardarBorrador(true);
+    });
+  });
+}
+
 function limpiarFormularioCheque(){
   $('fBenef').value = '';
   $('fMonto').value = '';
@@ -264,6 +326,7 @@ function limpiarFormularioCheque(){
   $('fConcepto').value = '';
   state.letraManual = false;
   if (padFirma) padFirma.limpiar();
+  guardarBorrador(true);
 }
 
 $('btnImprimir').addEventListener('click', async () => {
@@ -301,6 +364,7 @@ $('btnImprimir').addEventListener('click', async () => {
     limpiarFormularioCheque();
     refrescarPreview();
     refrescarEstado();
+    cargarHistorial();
   } catch(e){
     toast(e.message, true);
   } finally {
@@ -887,6 +951,7 @@ function renderHistorial(){
       $('fLetra').value = h.letra || '';
       $('fConcepto').value = h.concepto || '';
       if (h.fecha_cheque) $('fFecha').value = String(h.fecha_cheque).slice(0, 10);
+      guardarBorrador(true);
       activarTab('nuevo');
       const aplico = await aplicarFuentesCheque(h);
       if (!aplico) refrescarPreview();
@@ -973,6 +1038,7 @@ async function cargarHistorial(){
     return;
   }
   renderHistorial();
+  pintarConceptosChips();
 }
 
 $('histBuscar').addEventListener('input', renderHistorial);
@@ -1183,6 +1249,7 @@ $('fMonto').addEventListener('input', () => {
   state.letraManual = false;
   $('fLetra').value = numeroALetras(parseFloat($('fMonto').value) || 0);
   refrescarPreview();
+  guardarBorrador();
 });
-$('fLetra').addEventListener('input', () => { state.letraManual = true; refrescarPreview(); });
-['fNumero','fFecha','fBenef','fConcepto'].forEach(id => $(id).addEventListener('input', refrescarPreview));
+$('fLetra').addEventListener('input', () => { state.letraManual = true; refrescarPreview(); guardarBorrador(); });
+['fNumero','fFecha','fBenef','fConcepto'].forEach(id => $(id).addEventListener('input', () => { refrescarPreview(); guardarBorrador(); }));

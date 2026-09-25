@@ -72,8 +72,10 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btnAncho{width:100%;margin-top:16px}
 .btnPeq{padding:5px 10px;font-size:12.5px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center}
 .chip{font-size:12px;background:#f3f3f3;border:1px solid var(--borde);border-radius:10px;padding:3px 10px;color:var(--texto2)}
+button.chip{cursor:pointer;font-family:inherit;transition:background var(--trans),color var(--trans),border-color var(--trans)}
+button.chip:hover{background:var(--accentTint);border-color:#cfe3f7;color:var(--accent)}
 #previewWrap{position:relative}
 #previewScroll{overflow:auto;max-height:62vh;border:1px solid var(--borde);border-radius:var(--radioCtrl);background:#fff}
 #preview{display:block;cursor:grab;touch-action:none;background:#fff;transform-origin:0 0}
