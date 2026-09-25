@@ -52,6 +52,14 @@ async function iniciar(){
     const rn = await fetch('/api/numeros');
     if (rn.ok) state.numerosUsados = await rn.json() || {};
   } catch (e) { state.numerosUsados = {}; }
+  try {
+    const tab = localStorage.getItem('cheque_tab') || 'nuevo';
+    if ($('tab-' + tab)) activarTab(tab, true);
+    if (tab === 'ajustes'){
+      const sub = localStorage.getItem('cheque_subtab');
+      if (sub && $('subtab-' + sub)) activarSubTab(sub, true);
+    }
+  } catch (e) {}
 }
 
 window.addEventListener('unhandledrejection', (e) => {

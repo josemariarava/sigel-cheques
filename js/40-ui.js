@@ -1397,20 +1397,29 @@ document.querySelectorAll('[data-off]').forEach(btn => {
   });
 });
 
-function activarSubTab(nombre){
+function activarSubTab(nombre, restaurando){
+  if (!$('subtab-' + nombre)) nombre = 'config';
   document.querySelectorAll('#ajSubNav button').forEach(b => b.classList.toggle('activo', b.dataset.subtab === nombre));
   document.querySelectorAll('.subtab').forEach(t => t.classList.toggle('activo', t.id === 'subtab-' + nombre));
+  if (!restaurando){
+    try { localStorage.setItem('cheque_subtab', nombre); } catch (e) {}
+  }
   if (nombre === 'respaldos') cargarRespaldos();
   if (nombre === 'auditoria') cargarAuditoria();
   const subNav = $('ajSubNav');
-  if (subNav && subNav.scrollIntoView) subNav.scrollIntoView({ block: 'start' });
+  if (!restaurando && subNav && subNav.scrollIntoView) subNav.scrollIntoView({ block: 'start' });
 }
 
-function activarTab(nombre){
-  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
+function activarTab(nombre, restaurando){
+  if ($('tab-' + nombre)) {
+    document.querySelectorAll('nav button').forEach(b => b.classList.toggle('activo', b.dataset.tab === nombre));
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activo', t.id === 'tab-' + nombre));
+  }
+  if (!restaurando){
+    try { localStorage.setItem('cheque_tab', nombre); } catch (e) {}
+  }
   if (nombre === 'hist') cargarHistorial();
-  if (nombre === 'ajustes') activarSubTab('config');
+  if (nombre === 'ajustes') activarSubTab('config', restaurando);
   if (nombre === 'nuevo') refrescarPreview();
 }
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));
