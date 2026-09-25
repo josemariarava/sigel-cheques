@@ -73,27 +73,37 @@
     </div>
 
     <div class="panel" id="previewWrap">
-      <h2>Vista previa <span class="font-normal text-[12.5px] text-[#68788c]">(tal como se sostiene el cheque)</span></h2>
-      <div id="previewScroll">
-        <canvas id="preview" width="680" height="280"></canvas>
-      </div>
-      <div id="zoomBar">
-        <button type="button" class="btn sec" id="btnZoomOut" title="Alejar">−</button>
-        <button type="button" class="btn sec" id="btnZoomIn" title="Acercar">+</button>
-        <button type="button" class="btn sec" id="btnZoomFit">Ajustar</button>
-        <span id="zoomPct" class="text-[12.5px] text-[#68788c] min-w-[44px] inline-block">100%</span>
-        <span class="flex-1"></span>
-        <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" class="m-0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
-        <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" class="m-0">Guías</label></span>
+      <h2><span id="pvTitulo">Vista previa</span> <span id="pvSubtitulo" class="font-normal text-[12.5px] text-[#68788c]">(tal como se sostiene el cheque)</span></h2>
+      <div class="subNav" id="pvSubNav">
+        <button class="activo" data-pvtab="vista"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/></svg>Vista previa</button>
+        <button data-pvtab="pos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v3.5M12 18v3.5M2.5 12H6M18 12h3.5"/></svg>Posiciones (mm)</button>
       </div>
       <div id="selInfo"></div>
-      <div id="pvInfo" class="ayuda"></div>
-      <div class="ayuda">Rueda = zoom · flechas ↑↓←→ = mover campo (1 mm; Shift = 5 mm; Alt = 0.5 mm) · <b>+</b>/<b>−</b> = tamaño de letra del campo · doble clic = acercar al campo · arrastre o X/Y en Calibración · se guarda solo.</div>
-      <div class="subPanel">
-        <h3>Posiciones de campos (mm)</h3>
-        <div class="mb-2.5">
+
+      <div class="pvTab activo" id="pvtab-vista">
+        <div id="previewScroll">
+          <canvas id="preview" width="680" height="280"></canvas>
+        </div>
+        <div id="zoomBar">
+          <button type="button" class="btn sec" id="btnZoomOut" title="Alejar">−</button>
+          <button type="button" class="btn sec" id="btnZoomIn" title="Acercar">+</button>
+          <button type="button" class="btn sec" id="btnZoomFit">Ajustar</button>
+          <span id="zoomPct" class="text-[12.5px] text-[#68788c] min-w-[44px] inline-block">100%</span>
+          <span class="flex-1"></span>
+          <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkComoImprime" title="Aplica rotación y offsets como en la impresora"><label for="chkComoImprime" class="m-0" title="Muestra rotación y offsets como sale en papel">Como imprime</label></span>
+          <span class="checkline m-0 gap-1.5"><input type="checkbox" id="chkGuias" checked><label for="chkGuias" class="m-0">Guías</label></span>
+        </div>
+        <div id="pvInfo" class="ayuda"></div>
+        <details class="atajosDet">
+          <summary>Atajos: rueda = zoom · flechas = mover campo · +/− = letra · doble clic = acercar</summary>
+          <div class="ayuda">Rueda = zoom · flechas ↑↓←→ = mover campo (1 mm; Shift = 5 mm; Alt = 0.5 mm) · <b>+</b>/<b>−</b> = tamaño de letra del campo · doble clic = acercar al campo · arrastre o X/Y en Calibración · se guarda solo.</div>
+        </details>
+      </div>
+
+      <div class="pvTab" id="pvtab-pos">
+        <div class="mb-2.5 mt-2.5">
           <button type="button" class="btn sec w-full" id="btnAjustarLinea"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>Ajustar campo a 1 línea (achica letra hasta que quepa)</button>
-          <div class="ayuda mt-1.5">Selecciona un campo en la vista previa o en la grilla, luego pulsa el botón. O usa <b>+</b> / <b>−</b> con el campo seleccionado para achicar/agrandar a mano (Shift = ±0.5 mm).</div>
+          <div class="ayuda mt-1.5">Selecciona un campo en la vista previa y pulsa aquí, o usa <b>+</b>/<b>−</b> con el campo seleccionado.</div>
         </div>
         <div id="posGrid" class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2"></div>
       </div>

@@ -92,7 +92,12 @@ a.btn.sec:hover{color:var(--accent)}
 button.chip{cursor:pointer;font-family:inherit;transition:background var(--trans),color var(--trans),border-color var(--trans)}
 button.chip:hover{background:var(--accentTint);border-color:#cfe3f7;color:var(--accent)}
 #previewWrap{position:relative}
-#previewScroll{overflow:auto;max-height:62vh;border:1px solid var(--borde);border-radius:var(--radioCtrl);background:#fff}
+#previewScroll{overflow:auto;max-height:42vh;border:1px solid var(--borde);border-radius:var(--radioCtrl);background:#fff}
+.pvTab{display:none}
+.pvTab.activo{display:block}
+.atajosDet{margin-top:8px;font-size:12.5px;color:var(--texto3)}
+.atajosDet summary{cursor:pointer}
+.atajosDet .ayuda{margin-top:5px}
 #preview{display:block;cursor:grab;touch-action:none;background:#fff;transform-origin:0 0}
 #preview.arrastrando{cursor:grabbing}
 #zoomBar{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}

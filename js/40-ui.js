@@ -1469,8 +1469,16 @@ function activarTab(nombre, restaurando){
   if (nombre === 'nuevo') refrescarPreview();
   sincronizarRuta(restaurando);
 }
+function activarPvTab(nombre){
+  if (!$('pvtab-' + nombre)) nombre = 'vista';
+  document.querySelectorAll('#pvSubNav button').forEach(b => b.classList.toggle('activo', b.dataset.pvtab === nombre));
+  document.querySelectorAll('.pvTab').forEach(t => t.classList.toggle('activo', t.id === 'pvtab-' + nombre));
+  if ($('pvTitulo')) $('pvTitulo').textContent = nombre === 'pos' ? 'Posiciones de campos' : 'Vista previa';
+  if ($('pvSubtitulo')) $('pvSubtitulo').style.display = nombre === 'pos' ? 'none' : '';
+}
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => activarTab(b.dataset.tab)));
 document.querySelectorAll('#ajSubNav button').forEach(b => b.addEventListener('click', () => activarSubTab(b.dataset.subtab)));
+document.querySelectorAll('#pvSubNav button').forEach(b => b.addEventListener('click', () => activarPvTab(b.dataset.pvtab)));
 window.addEventListener('popstate', () => {
   const r = (typeof location !== 'undefined') ? parseRuta(location.pathname) : null;
   if (!r) return;
