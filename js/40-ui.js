@@ -59,6 +59,7 @@ async function refrescarPreview(){
     pintarPosGrid();
     const fechaChip = $('fFechaLarga').firstElementChild;
     fechaChip.textContent = data.fechaText || 'línea de fecha';
+    fechaChip.title = fechaChip.textContent;
     const info = $('pvInfo');
     if (info){
       const reg = regionImprimibleNatural(cfg);

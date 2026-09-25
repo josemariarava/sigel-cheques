@@ -32,13 +32,16 @@
 <section id="tab-nuevo" class="tab activo">
   <div class="panel">
     <h2>Datos del cheque</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 formDensa">
       <div>
         <label>N° de cheque</label>
         <input type="text" id="fNumero" class="numAuto">
       </div>
       <div>
-        <label>Fecha</label>
+        <div class="lblFila">
+          <label>Fecha</label>
+          <span id="fFechaLarga"><span class="chip"></span></span>
+        </div>
         <input type="date" id="fFecha">
       </div>
       <div class="lg:col-span-2">
@@ -60,7 +63,6 @@
         <div id="conceptosChips" class="chips"></div>
       </div>
     </div>
-    <div id="fFechaLarga" class="chips"><span class="chip"></span></div>
 
     <div class="firmaFila">
       <button type="button" class="firmaPill" id="btnFirmaPill" aria-haspopup="dialog" title="Firma del cheque">
@@ -70,7 +72,7 @@
       </button>
       <div class="imprimirCaja">
         <button class="btn btnAncho" id="btnImprimir" title="Ctrl + P"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8.5V4.5h10v4"/><path d="M5 8.5h14v6.5H5z"/><path d="M7.5 15v4.5h9V15"/></svg>Imprimir cheque</button>
-        <div class="ayuda">Inserta el cheque en la ranura frontal antes de imprimir. Si es la primera vez en el día, usa la pestaña <b>Calibración</b> para una prueba de grilla.</div>
+        <div class="ayuda" title="Si es la primera vez en el día, usa la pestaña Calibración para una prueba de grilla.">Inserta el cheque en la ranura antes de imprimir.</div>
       </div>
     </div>
   </div>
